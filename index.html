@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>清華講座單據包</title>
+<meta name="description" content="講者輸入一次資料，產出國立清華大學講座領據、匯款同意書與加浮水印證件影本。所有資料只在瀏覽器內處理。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&display=swap">
+<style>
+/* Layout: two panes on desktop (form left, live A4 preview right), single column on phones. */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --fg:#1d2420; --muted:#5d6862; --line:#d6dbd5;
+  --accent:#1f5f4a; --accent-ink:#ffffff; --accent-soft:#e2eee8;
+  --warn:#9a5b00; --warn-soft:#fff3dc; --bad:#a3282b; --bad-soft:#fbe5e5; --ok:#2f6b3a;
+  --ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --form:"Noto Serif TC","Noto Serif CJK TC","PMingLiU","MingLiU",serif;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --surface:#1c2320; --fg:#e7ece8; --muted:#9aa69f; --line:#33403a;
+  --accent:#7cc4a6; --accent-ink:#0f1c16; --accent-soft:#1f3329;
+  --warn:#f0b65a; --warn-soft:#3a2d17; --bad:#f08d8f; --bad-soft:#3d1f20; --ok:#8fd19b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --surface:#1c2320; --fg:#e7ece8; --muted:#9aa69f; --line:#33403a;
+  --accent:#7cc4a6; --accent-ink:#0f1c16; --accent-soft:#1f3329;
+  --warn:#f0b65a; --warn-soft:#3a2d17; --bad:#f08d8f; --bad-soft:#3d1f20; --ok:#8fd19b; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:15px;line-height:1.6}
+header.top{padding-block:20px 8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1400px;margin:0 auto}
+header.top h1{font-size:1.5rem;margin:0;letter-spacing:.02em;text-wrap:balance}
+header.top p{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;max-width:1400px;margin:0 auto;padding-block:12px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+section.card h2{font-size:1.05rem;margin:0 0 4px;display:flex;align-items:baseline;gap:10px}
+section.card h2 .step{font-family:var(--mono);font-size:.8rem;color:var(--accent);font-weight:700}
+.hint{color:var(--muted);font-size:.85rem;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+.grid .full{grid-column:1/-1}
+@media (max-width:520px){.grid{grid-template-columns:minmax(0,1fr)}}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:.85rem;color:var(--muted);min-width:0}
+label.f span.req::after{content:" *";color:var(--bad)}
+input[type=text],input[type=date],input[type=number],input[type=email],input[type=tel],select,textarea{
+  font:inherit;font-size:.95rem;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:.92rem;color:var(--fg)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.9rem;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 14px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button:disabled{opacity:.5;cursor:default}
+.locked{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.locked dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:2px 12px;margin:6px 0 0}
+.locked dt{color:var(--muted)} .locked dd{margin:0;overflow-wrap:anywhere}
+.share{display:flex;gap:8px;margin-top:10px}
+.share input{font-family:var(--mono);font-size:.78rem}
+.uploads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.uploads{grid-template-columns:minmax(0,1fr)}}
+.drop{border:1.5px dashed var(--line);border-radius:9px;padding:8px;display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:center;font-size:.85rem;color:var(--muted);min-width:0}
+.drop .thumb{aspect-ratio:1.58;max-width:100%;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.drop .thumb img{width:100%;height:100%;object-fit:contain}
+.drop .acts{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.drop .acts button{padding:3px 9px;font-size:.8rem}
+.drop.need{border-color:var(--warn)}
+.msgs{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.msgs li{border-radius:7px;padding:7px 10px;font-size:.88rem}
+.msgs li.warn{background:var(--warn-soft);color:var(--warn)}
+.msgs li.bad{background:var(--bad-soft);color:var(--bad)}
+.msgs li.info{background:var(--accent-soft);color:var(--fg)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{font-size:.85rem;color:var(--muted)}
+.sticky{position:sticky;top:env(safe-area-inset-top,0px)}
+@media (max-width:980px){.sticky{position:static}}
+.preview{display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 220px);overflow:auto;padding:4px;background:var(--bg);border-radius:8px}
+@media (max-width:980px){.preview{max-height:none}}
+.pv-sheet{width:100%;aspect-ratio:210/297;position:relative;overflow:hidden;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);flex:none}
+.pv-sheet > .sheet{position:absolute;left:0;top:0;transform-origin:0 0}
+.pv-label{font-size:.8rem;color:var(--muted);margin-bottom:-8px}
+details.more summary{cursor:pointer;color:var(--accent);font-size:.9rem}
+.small{font-size:.8rem;color:var(--muted)}
+footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));color:var(--muted);font-size:.8rem}
+
+/* ===== A4 sheets: always paper-white, independent of theme ===== */
+#printroot{position:fixed;left:-20000px;top:0;pointer-events:none}
+.sheet{width:794px;height:1123px;background:#fff;color:#000;font-family:var(--form);font-size:14px;line-height:1.45;padding:38px 46px;position:relative;overflow:hidden}
+.sheet *{box-sizing:border-box}
+.sheet table{border-collapse:collapse;width:100%;table-layout:fixed}
+.sheet td,.sheet th{border:1px solid #000;padding:3px 6px;vertical-align:middle;font-weight:400}
+.sheet .c{text-align:center}
+.sheet .g{color:#9a9a9a}
+.sheet .fill{color:#0b2a8f;font-family:"Noto Sans TC","Noto Sans CJK TC",sans-serif;font-weight:500}
+.sheet .sm{font-size:11.5px;line-height:1.3}
+.sheet .xs{font-size:10.5px;line-height:1.35}
+.cb{display:inline-block;width:13px;height:13px;border:1.2px solid #000;vertical-align:-1px;margin-right:2px;position:relative;background:#fff}
+.cb.on::after{content:"";position:absolute;left:3.5px;top:-1px;width:4px;height:9px;border:solid #0b2a8f;border-width:0 2.2px 2.2px 0;transform:rotate(45deg)}
+.sheet .vtext{writing-mode:vertical-rl;text-align:center;letter-spacing:.3em;padding:4px 0}
+.sheet ol.sum{margin:4px 0 0;padding-left:22px}
+.sheet ol.sum li{margin:2px 0}
+.sheet .uline{display:inline-block;border-bottom:1px solid #000;min-width:60px;padding:0 4px;text-align:center}
+.sheet .notes{margin-top:6px;font-size:11.5px;line-height:1.55}
+/* generic receipt */
+.rcpt{border:1.5px solid #000;height:100%;padding:26px 30px;display:flex;flex-direction:column;gap:12px;font-size:14.5px}
+.rcpt h3{text-align:center;font-size:24px;letter-spacing:.6em;margin:6px 0 0;font-weight:600;text-decoration:underline;text-underline-offset:6px}
+.rcpt h4{text-align:center;font-size:19px;letter-spacing:.3em;margin:4px 0 8px;font-weight:600}
+.rcpt .ln{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px}
+.rcpt .en{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a2b80}
+.rcpt .b{font-weight:700}
+.zip{display:inline-flex;gap:2px;vertical-align:middle}
+.zip i{display:inline-block;width:17px;height:19px;border:1px solid #000;font-style:normal;text-align:center;line-height:17px;font-size:13px}
+/* remit consent */
+.remit{font-size:16px;line-height:2.05;padding:10px 6px}
+.remit h3{text-align:center;font-size:21px;margin:0 0 10px;font-weight:600;letter-spacing:.08em}
+.remit p{margin:0}
+.remit .ind{padding-left:2.2em}
+.remit table td{height:34px;font-size:15px}
+.remit .line{display:flex;gap:6px;align-items:baseline}
+.remit .line .v{flex:1;border-bottom:1px solid #000;min-height:28px;padding:0 6px}
+/* copies */
+.copies{display:flex;flex-direction:column;gap:18px;height:100%}
+.copies h3{margin:0;font-size:17px;text-align:center;font-weight:600}
+.copies .pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.copies figure{margin:0;display:flex;flex-direction:column;gap:4px;align-items:center}
+.copies figure img{width:100%;border:1px solid #bbb;object-fit:contain}
+.copies figcaption{font-size:12px;color:#444}
+.copies .pb img{max-height:470px;width:auto;max-width:100%}
+.copies .empty{border:1px dashed #999;width:100%;aspect-ratio:1.58;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px}
+
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  body > *:not(#printroot){display:none!important}
+  #printroot{position:static;left:auto}
+  #printroot .sheet{page-break-after:always;break-after:page}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>清華講座單據包</h1>
+  <p>講者填一次基本資料、上傳存摺與身分證，就能產出對應經費來源的領據、匯款同意書與加了浮水印的影本 PDF。所有資料都只在你的瀏覽器裡處理，不會上傳到任何伺服器。</p>
+</header>
+
+<main class="wrap">
+<div class="col">
+
+  <!-- ① 活動與經費來源 -->
+  <section class="card" id="sec-event">
+    <h2><span class="step">01</span>經費來源與活動資料 <span class="small">（邀請人填寫）</span></h2>
+    <div id="eventLocked" class="locked" hidden></div>
+    <div id="eventForm">
+      <p class="hint">邀請人填好這一區後按「產生講者連結」，講者打開連結時這區會自動帶入並鎖定，只需要填自己的資料。</p>
+      <div class="grid">
+        <div class="full">
+          <div class="small" style="margin-bottom:4px">單據類別</div>
+          <div class="seg" id="catSeg">
+            <label><input type="radio" name="cat" value="tf-innov" checked>教發中心｜教師創新教學</label>
+            <label><input type="radio" name="cat" value="tf-cross">教發中心｜跨域富學社群</label>
+            <label><input type="radio" name="cat" value="tf-colearn">教發中心｜共學圈圈</label>
+            <label><input type="radio" name="cat" value="general">通用（系所／學校領據）</label>
+          </div>
+        </div>
+        <div class="full row">
+          <span class="small">要核銷的項目：</span>
+          <label class="chk"><input type="checkbox" id="itLecture" checked>演講費（講座鐘點費）</label>
+          <label class="chk"><input type="checkbox" id="itTravel" checked>交通費</label>
+        </div>
+        <label class="f tf-proj"><span class="req" id="lblF1">課程名稱</span><input type="text" id="ev_f1"></label>
+        <label class="f tf-proj"><span id="lblF2">計畫編號</span><input type="text" id="ev_f2"></label>
+        <label class="f"><span class="req" id="lblConvener">召集人</span><input type="text" id="ev_convener"></label>
+        <label class="f gen-only"><span>經辦單位（浮水印用）</span><input type="text" id="ev_unit" placeholder="例：科技藝術研究所"></label>
+        <label class="f full"><span class="req">演講主題</span><input type="text" id="ev_topic"></label>
+        <label class="f"><span class="req">演講日期</span><input type="date" id="ev_date"></label>
+        <label class="f"><span>演講時間</span><input type="text" id="ev_time" placeholder="例：14:00–16:00（2 小時）"></label>
+        <label class="f full"><span>演講地點</span><input type="text" id="ev_place" placeholder="例：國立清華大學 藝術學院 ○○教室"></label>
+        <label class="f lec-only"><span>演講費金額（NT$）</span><input type="number" id="ev_lecAmt" min="0" step="1"></label>
+        <label class="f tra-only"><span>交通費金額（NT$，可留給講者填）</span><input type="number" id="ev_traAmt" min="0" step="1"></label>
+        <label class="f tra-only"><span>交通迄點</span><input type="text" id="ev_dest" value="國立清華大學"></label>
+        <label class="f tra-only"><span>活動名稱（交通費單）</span><input type="text" id="ev_act" placeholder="空白時沿用演講主題"></label>
+      </div>
+      <details class="more" style="margin-top:10px">
+        <summary>進階設定</summary>
+        <div class="grid" style="margin-top:10px">
+          <label class="f"><span>單據上的日期</span>
+            <select id="ev_dateMode"><option value="event">填入演講日期</option><option value="blank">留白（簽名時手寫）</option></select></label>
+          <label class="f tf-only"><span>鐘點費單「費別」勾選</span>
+            <select id="ev_feeKind"><option>演講費</option><option>鐘點費</option></select></label>
+          <label class="f gen-only"><span>所得稅／二代健保</span>
+            <select id="ev_tax"><option value="blank">留白，由承辦人填</option><option value="auto">依 9B 試算（單次 >2 萬扣 10%、≥2 萬扣 2.11%）</option></select></label>
+          <label class="f"><span>身分證影本</span>
+            <select id="ev_needId"><option value="1">需要（正反面）</option><option value="0">不需要，只收存摺</option></select></label>
+          <label class="f full tf-only"><span>用途摘要抬頭（不同計畫的表頭文字）</span><input type="text" id="ev_header"></label>
+        </div>
+      </details>
+      <div class="share">
+        <button type="button" class="primary" id="btnShare">產生講者連結</button>
+        <input type="text" id="shareOut" readonly placeholder="連結會出現在這裡" aria-label="講者連結">
+      </div>
+      <p class="small" id="shareMsg" style="margin:6px 0 0">連結只帶活動資料，不含任何講者個資。</p>
+    </div>
+  </section>
+
+  <!-- ② 講者資料 -->
+  <section class="card">
+    <h2><span class="step">02</span>講者基本資料</h2>
+    <p class="hint">依「印領清冊／領據」需要的欄位。戶籍地址請寫到區、鄰、里，這是主計室最常退件的地方。</p>
+    <div class="grid">
+      <label class="f"><span class="req">姓名</span><input type="text" id="p_name" autocomplete="name"></label>
+      <label class="f gen-only"><span>稱謂（通用領據）</span><select id="p_title"><option>先生</option><option>女士</option><option value="">不顯示</option></select></label>
+      <label class="f tf-only"><span class="req">現職（單位／職稱）</span><input type="text" id="p_job" placeholder="例：○○大學 ○○系 副教授"></label>
+      <label class="f"><span class="req">身分證字號</span><input type="text" id="p_id" maxlength="10" autocomplete="off" style="text-transform:uppercase"></label>
+      <label class="f"><span class="req">出生年月日</span><input type="date" id="p_dob" min="1920-01-01"></label>
+      <label class="f"><span>郵遞區號</span><input type="text" id="p_zip" maxlength="6" inputmode="numeric"></label>
+      <label class="f full"><span class="req">戶籍地址（含區、鄰、里）</span><input type="text" id="p_addr" placeholder="例：新北市板橋區○○里 5 鄰 ○○路 1 段 10 號 3 樓"></label>
+      <label class="f full"><span>通訊地址（匯款同意書）</span><input type="text" id="p_mail" placeholder="空白時與戶籍地址相同"></label>
+      <label class="f"><span class="req">電話</span><input type="tel" id="p_phone" autocomplete="tel"></label>
+      <label class="f"><span class="req">E-mail（匯款後通知）</span><input type="email" id="p_email" autocomplete="email"></label>
+    </div>
+  </section>
+
+  <!-- ③ 帳戶 -->
+  <section class="card">
+    <h2><span class="step">03</span>匯款帳戶</h2>
+    <p class="hint">需與存摺影本一致，且必須是本人帳戶。郵局的分行代號請填局號。</p>
+    <div class="grid">
+      <label class="f"><span class="req">銀行名稱</span><input type="text" id="p_bank" list="bankList" placeholder="輸入或選擇，例：中華郵政"></label>
+      <label class="f"><span class="req">銀行代號</span><input type="text" id="p_bankCode" maxlength="3" inputmode="numeric"></label>
+      <label class="f"><span class="req">分行名稱</span><input type="text" id="p_branch"></label>
+      <label class="f"><span>分行代號</span><input type="text" id="p_branchCode" maxlength="7" inputmode="numeric"></label>
+      <label class="f"><span class="req">帳號（含檢查號碼）</span><input type="text" id="p_acct" inputmode="numeric"></label>
+      <label class="f"><span>存款戶名</span><input type="text" id="p_acctName" placeholder="空白時與姓名相同"></label>
+      <label class="f full row" style="flex-direction:row"><span class="small">匯款同意書勾選：</span>
+        <select id="p_remitKind" style="width:auto"><option value="new">新申請</option><option value="change">變更名稱或帳號</option></select></label>
+    </div>
+    <datalist id="bankList"></datalist>
+  </section>
+
+  <!-- ④ 交通 -->
+  <section class="card tra-only" id="sec-travel">
+    <h2><span class="step">04</span>交通資訊</h2>
+    <p class="hint">交通費採實報實銷，從任職地或居住地到演講地點往返。當日往返的台鐵、高鐵、客運、捷運免附票根；計程車要附收據；自行開車每公里 3 元（機車 2 元），需附 Google 地圖里程截圖。</p>
+    <div class="grid">
+      <label class="f"><span class="req">出發地</span><input type="text" id="t_from" placeholder="例：台北市"></label>
+      <label class="f"><span>出發地屬性</span>
+        <select id="t_fromType"><option>任職地</option><option>戶籍地</option><option>居住地</option><option>其他</option></select></label>
+      <div class="full">
+        <div class="small" style="margin-bottom:4px">搭乘工具（可複選）</div>
+        <div class="row" id="t_tools">
+          <label class="chk"><input type="checkbox" value="台鐵">台鐵</label>
+          <label class="chk"><input type="checkbox" value="高鐵">高鐵</label>
+          <label class="chk"><input type="checkbox" value="客運">客運</label>
+          <label class="chk"><input type="checkbox" value="自行開車">自行開車</label>
+          <label class="chk"><input type="checkbox" value="計程車">計程車</label>
+        </div>
+      </div>
+      <label class="f"><span>其他工具／說明</span><input type="text" id="t_other" placeholder="例：捷運、機車 120 km"></label>
+      <label class="f"><span>交通費金額（NT$）</span><input type="number" id="t_amt" min="0" step="1"></label>
+      <label class="f"><span>附單據張數（計程車收據等）</span><input type="number" id="t_docs" min="0" step="1"></label>
+    </div>
+  </section>
+
+  <!-- ⑤ 影像 -->
+  <section class="card">
+    <h2><span class="step">05</span>存摺與身分證影像</h2>
+    <p class="hint">手機拍照或掃描都可以。存摺請拍有戶名與帳號的那一頁。浮水印會蓋在影像上，原圖不會離開這台裝置。</p>
+    <div class="uploads">
+      <div class="drop" id="drop_passbook"><strong>存摺封面內頁</strong><div class="thumb"><span>尚未上傳</span></div>
+        <div class="acts"><button type="button" data-pick="passbook">選擇檔案</button><button type="button" data-rot="passbook">旋轉</button><button type="button" data-clr="passbook">移除</button></div></div>
+      <div class="drop id-only" id="drop_idFront"><strong>身分證正面</strong><div class="thumb"><span>尚未上傳</span></div>
+        <div class="acts"><button type="button" data-pick="idFront">選擇檔案</button><button type="button" data-rot="idFront">旋轉</button><button type="button" data-clr="idFront">移除</button></div></div>
+      <div class="drop id-only" id="drop_idBack"><strong>身分證反面</strong><div class="thumb"><span>尚未上傳</span></div>
+        <div class="acts"><button type="button" data-pick="idBack">選擇檔案</button><button type="button" data-rot="idBack">旋轉</button><button type="button" data-clr="idBack">移除</button></div></div>
+    </div>
+    <input type="file" id="fileIn" accept="image/*" hidden>
+    <label class="f" style="margin-top:10px"><span>浮水印文字</span><input type="text" id="wmText"></label>
+  </section>
+
+  <!-- ⑥ 輸出 -->
+  <section class="card">
+    <h2><span class="step">06</span>檢查與輸出</h2>
+    <ul class="msgs" id="msgs"></ul>
+    <div class="actions" style="margin-top:12px">
+      <button type="button" class="primary" id="btnPdf">下載單據包 PDF</button>
+      <button type="button" id="btnPrint">直接列印</button>
+      <span class="status" id="pdfStatus"></span>
+    </div>
+    <p class="small" style="margin:10px 0 0">PDF 內含所有單據與影本。<strong>簽名欄請印出後親筆簽名</strong>，學校不收電子簽章，簽好的正本交給邀請人。</p>
+    <details class="more" style="margin-top:10px">
+      <summary>保存我的資料，下次再用</summary>
+      <div class="row" style="margin-top:8px">
+        <label class="chk"><input type="checkbox" id="remember">在這台裝置記住我的基本資料（不含證件影像）</label>
+      </div>
+      <div class="actions" style="margin-top:8px">
+        <button type="button" id="btnExport">下載我的資料檔（含影像）</button>
+        <button type="button" id="btnImport">讀入資料檔</button>
+        <input type="file" id="importIn" accept="application/json,.json" hidden>
+      </div>
+      <p class="small" style="margin:6px 0 0">資料檔含身分證字號與證件影像，請自行妥善保存，不要寄給不需要的人。</p>
+    </details>
+  </section>
+</div>
+
+<div class="col">
+  <div class="sticky">
+    <section class="card" style="padding:12px">
+      <h2 style="margin-bottom:8px"><span class="step">預覽</span><span id="pvCount" class="small"></span></h2>
+      <div class="preview" id="preview"></div>
+    </section>
+  </div>
+</div>
+</main>
+<footer class="note">表單版式依國立清華大學教學發展中心 115-1 核銷說明（跨域富學／教師創新教學 1150630、共學圈圈 1150714）、通用領據與「校外人士／廠商匯款同意書」(108.09.04 修訂) 重製。送件前請以承辦單位最新規定為準。</footer>
+
+<div id="printroot" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const LS_KEY="nthu-speaker-pack-v1";
+
+const BANKS=[["004","臺灣銀行"],["005","臺灣土地銀行"],["006","合作金庫商業銀行"],["007","第一商業銀行"],["008","華南商業銀行"],["009","彰化商業銀行"],["011","上海商業儲蓄銀行"],["012","台北富邦商業銀行"],["013","國泰世華商業銀行"],["016","高雄銀行"],["017","兆豐國際商業銀行"],["048","王道商業銀行"],["050","臺灣中小企業銀行"],["052","渣打國際商業銀行"],["053","台中商業銀行"],["054","京城商業銀行"],["081","匯豐(台灣)商業銀行"],["101","瑞興商業銀行"],["102","華泰商業銀行"],["103","臺灣新光商業銀行"],["108","陽信商業銀行"],["118","板信商業銀行"],["147","三信商業銀行"],["700","中華郵政"],["803","聯邦商業銀行"],["805","遠東國際商業銀行"],["806","元大商業銀行"],["807","永豐商業銀行"],["808","玉山商業銀行"],["809","凱基商業銀行"],["810","星展(台灣)商業銀行"],["812","台新國際商業銀行"],["816","安泰商業銀行"],["822","中國信託商業銀行"],["823","將來商業銀行"],["824","連線商業銀行"],["826","樂天國際商業銀行"]];
+$("#bankList").innerHTML=BANKS.map(([c,n])=>`<option value="${n}">${c}</option>`).join("");
+
+const CAT={
+  "tf-innov":{tf:true,label:"教發中心｜教師創新教學",f1:"課程名稱",f2:"計畫編號",conv:"召集人",convSign:"召集人簽名&amp;員工編號",
+    header:"教學發展中心「教師創新教學補助」/提升教學品質、精進教學。",bilingual:true,rosterTitle:"印領清冊 (校外人員)"},
+  "tf-cross":{tf:true,label:"教發中心｜跨域富學社群",f1:"社群名稱",f2:"計畫編號",conv:"召集人",convSign:"召集人簽名&amp;員工編號",
+    header:"教學發展中心「跨域富學社群補助」/提升教學品質、精進教學。",bilingual:true,rosterTitle:"印領清冊 (校外人員)"},
+  "tf-colearn":{tf:true,label:"教發中心｜共學圈圈",f1:"共學圈圈小組名稱",f2:"小組編號",conv:"召集人",convSign:"召集人簽名&amp;學號",
+    header:"教學發展中心「共學圈圈計畫」/提升學生自主學習、增進學生學習效能。",bilingual:false,rosterTitle:"ROC_MONTH"},
+  "general":{tf:false,label:"通用（系所／學校領據）",conv:"計畫主持人／邀請人"}
+};
+
+/* ---------- state ---------- */
+const imgs={passbook:null,idFront:null,idBack:null}; // dataURL (downscaled, unwatermarked)
+let fromLink=false, pickTarget=null;
+
+const EV_IDS=["ev_f1","ev_f2","ev_convener","ev_unit","ev_topic","ev_date","ev_time","ev_place","ev_lecAmt","ev_traAmt","ev_dest","ev_act","ev_dateMode","ev_feeKind","ev_tax","ev_needId","ev_header"];
+const P_IDS=["p_name","p_title","p_job","p_id","p_dob","p_zip","p_addr","p_mail","p_phone","p_email","p_bank","p_bankCode","p_branch","p_branchCode","p_acct","p_acctName","p_remitKind","t_from","t_fromType","t_other","t_amt","t_docs"];
+
+function readEvent(){
+  const e={cat:($('input[name=cat]:checked')||{}).value||"tf-innov",lec:$("#itLecture").checked,tra:$("#itTravel").checked};
+  EV_IDS.forEach(id=>e[id.slice(3)]=$("#"+id).value.trim());
+  if(Object.values(CAT).some(c=>c.header===e.header)) e.header="";
+  return e;
+}
+function writeEvent(e){
+  const r=$(`input[name=cat][value="${e.cat}"]`); if(r) r.checked=true;
+  $("#itLecture").checked=e.lec!==false; $("#itTravel").checked=e.tra!==false;
+  EV_IDS.forEach(id=>{const k=id.slice(3); if(e[k]!==undefined) $("#"+id).value=e[k];});
+}
+function readPerson(){
+  const p={}; P_IDS.forEach(id=>p[id]=$("#"+id).value.trim());
+  p.p_id=p.p_id.toUpperCase();
+  p.tools=$$("#t_tools input:checked").map(x=>x.value);
+  return p;
+}
+function writePerson(p){
+  P_IDS.forEach(id=>{if(p[id]!==undefined) $("#"+id).value=p[id];});
+  if(Array.isArray(p.tools)) $$("#t_tools input").forEach(x=>x.checked=p.tools.includes(x.value));
+}
+
+/* ---------- helpers ---------- */
+function roc(iso){ if(!iso) return null; const [y,m,d]=iso.split("-").map(Number); if(!y) return null; return {y:y-1911,m,d,Y:y}; }
+function money(n){ n=Number(n); return Number.isFinite(n)&&n>0? n.toLocaleString("en-US"):""; }
+function cb(on){ return `<span class="cb${on?" on":""}"></span>`; }
+function f(v){ return v? `<span class="fill">${esc(v)}</span>`:""; }
+function idValid(id){
+  if(!/^[A-Z][1289ABCD]\d{8}$/.test(id)) return false;
+  const L="ABCDEFGHJKLMNPQRSTUVXYWZIO", n=L.indexOf(id[0])+10;
+  let s=Math.floor(n/10)+(n%10)*9;
+  const second=/[A-D]/.test(id[1])? (("ABCD".indexOf(id[1])+10)%10) : Number(id[1]);
+  const ds=[second,...id.slice(2).split("").map(Number)];
+  const w=[8,7,6,5,4,3,2,1,1]; ds.forEach((d,i)=>s+=d*w[i]);
+  return s%10===0;
+}
+function b64e(o){ const s=JSON.stringify(o); return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function b64d(t){ t=t.replace(/-/g,"+").replace(/_/g,"/"); while(t.length%4) t+="="; return JSON.parse(decodeURIComponent(escape(atob(t)))); }
+
+/* ---------- watermark ---------- */
+const wmCache=new Map();
+function watermark(src,text){
+  const key=src.length+"|"+src.slice(-64)+"|"+text;
+  if(wmCache.has(key)) return Promise.resolve(wmCache.get(key));
+  return new Promise(res=>{
+    const im=new Image(); im.onload=()=>{
+      const c=document.createElement("canvas"); c.width=im.naturalWidth; c.height=im.naturalHeight;
+      const x=c.getContext("2d"); x.drawImage(im,0,0);
+      const W=c.width,H=c.height, fs=Math.max(14,Math.round(Math.min(W,H)/16));
+      x.save(); x.translate(W/2,H/2); x.rotate(-Math.PI/7);
+      x.font=`700 ${fs}px "Noto Sans TC","Noto Sans CJK TC","Microsoft JhengHei",sans-serif`;
+      x.fillStyle="rgba(200,30,30,0.32)"; x.textAlign="center"; x.textBaseline="middle";
+      const tw=x.measureText(text).width+fs*2, diag=Math.hypot(W,H);
+      for(let yy=-diag/2; yy<diag/2; yy+=fs*2.6){
+        const off=(Math.round(yy/(fs*2.6))%2)*tw/2;
+        for(let xx=-diag/2-tw; xx<diag/2+tw; xx+=tw) x.fillText(text,xx+off,yy);
+      }
+      x.restore();
+      const out=c.toDataURL("image/jpeg",0.88); wmCache.set(key,out); res(out);
+    }; im.src=src;
+  });
+}
+function loadImageFile(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader(); r.onerror=rej;
+    r.onload=()=>{ const im=new Image(); im.onerror=rej; im.onload=()=>{
+      const max=1800, k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+      const c=document.createElement("canvas"); c.width=Math.round(im.naturalWidth*k); c.height=Math.round(im.naturalHeight*k);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height); res(c.toDataURL("image/jpeg",0.9));
+    }; im.src=r.result; };
+    r.readAsDataURL(file);
+  });
+}
+function rotate(src){
+  return new Promise(res=>{ const im=new Image(); im.onload=()=>{
+    const c=document.createElement("canvas"); c.width=im.naturalHeight; c.height=im.naturalWidth;
+    const x=c.getContext("2d"); x.translate(c.width,0); x.rotate(Math.PI/2); x.drawImage(im,0,0);
+    res(c.toDataURL("image/jpeg",0.9)); }; im.src=src; });
+}
+
+/* ---------- sheet templates ---------- */
+function tfTopBlock(C){
+  return `<table class="sm c"><colgroup><col style="width:15%"><col style="width:15.5%"><col style="width:15.5%"><col style="width:17%"><col style="width:15.5%"><col></colgroup>
+  <tr style="height:62px"><td>經辦單位</td><td>驗收或證明人</td><td>單位主管</td>
+  <td class="xs" style="padding:0"><div style="border-bottom:1px solid #000;padding:2px">財產登記單位</div><div style="padding:2px">圖書或單價超過壹萬元使用年限超過二年，須登記財產。</div></td>
+  <td>主計室</td><td class="xs">機關長官或授權代簽人(授權金額 15 萬元以下)</td></tr>
+  <tr style="height:118px"><td class="g">${C.convSign}</td><td></td><td></td><td></td><td></td><td></td></tr></table>`;
+}
+function tfLecture(e,p,C){
+  const ev=roc(e.date), amt=money(e.lecAmt);
+  const items=[[C.f1,e.f1],[C.f2,e.f2],[C.conv,e.convener],["專家姓名",p.p_name],["專家現職",p.p_job],["演講主題",e.topic],["演講日期",ev?`${ev.Y} 年 ${ev.m} 月 ${ev.d} 日`:""],["演講時間",e.time],["演講地點",e.place]];
+  const rosterTitle=C.rosterTitle==="ROC_MONTH"? `國立清華大學 ${ev?f(ev.y):'&emsp;&emsp;'} 年 ${ev?f(ev.m):'&emsp;'} 月份印領清冊 (校外人員)` : C.rosterTitle;
+  const fees=["演講費","撰稿費","審稿費","出席費","鐘點費","命題費","顧問費","交通費"].map(k=>`${cb(k===(e.feeKind||"演講費"))}${k}`).join(" ");
+  const dob=p.p_dob? p.p_dob.replace(/-/g," / "):"";
+  return `<div class="sheet">${tfTopBlock(C)}
+  <table style="margin-top:-1px"><colgroup><col style="width:13.5%"><col style="width:31%"><col style="width:4%"><col></colgroup>
+   <tr style="height:52px"><td class="c">金　額<div class="xs">(阿拉伯數字)</div></td><td class="c">${amt?f("NT$ "+amt):""}</td>
+     <td rowspan="${C.bilingual?4:3}" class="vtext">用途摘要</td>
+     <td rowspan="${C.bilingual?4:3}" style="vertical-align:top;padding:6px 8px">${C_header(e,C)}【講座鐘點費】
+       <ol class="sum">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}</ol></td></tr>
+   <tr style="height:150px"><td class="c">付款方式</td><td style="font-size:13px">${cb(true)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
+     <div style="margin-top:6px">${cb(false)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px"></span><br>員編：<span class="uline" style="min-width:110px"></span></div></td></tr>
+   <tr style="height:56px"><td class="c">經手人<div class="xs">(聯絡方式)</div></td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
+   ${C.bilingual?`<tr><td colspan="2" class="sm" style="padding:5px 6px"><b>若本計畫執行內容與雙語計畫相關，請依課程／活動實際內容擇一或複選下列項目：</b><br>${cb(false)}國際、跨文化及英語授課<br>${cb(false)}學術英文課程或專業英語課程<br>${cb(false)}其他：<span class="uline"></span></td></tr>`:""}
+  </table>
+  <table style="margin-top:-1px"><tr style="height:34px"><td class="c" style="font-size:15px;font-weight:600">${rosterTitle}</td></tr></table>
+  <table style="margin-top:-1px" class="c"><colgroup><col style="width:11%"><col></colgroup><tr style="height:32px"><td>費別</td><td style="text-align:left">${fees}</td></tr></table>
+  <table style="margin-top:-1px" class="c"><colgroup><col style="width:17%"><col style="width:14%"><col style="width:13%"><col style="width:14%"><col style="width:14%"><col></colgroup>
+   <tr style="height:34px"><td>姓名</td><td>應領金額</td><td>所得稅</td><td>自提二代健保</td><td>實領金額</td><td>簽名或蓋章</td></tr>
+   <tr style="height:56px"><td>${f(p.p_name)}</td><td>${amt?f(amt):""}</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td></td></tr>
+   <tr style="height:40px"><td>身分證字號</td><td colspan="5" style="text-align:left">${f(p.p_id)}</td></tr>
+   <tr style="height:40px"><td>西元出生年月日</td><td colspan="5" style="text-align:left">${f(dob)}</td></tr>
+   <tr style="height:48px"><td>戶籍地址<div class="xs">(填寫區、鄰、里)</div></td><td colspan="5" style="text-align:left">( ${f(p.p_zip)||"&emsp;&emsp;"} ) ${f(p.p_addr)}</td></tr>
+  </table>
+  <div class="notes">備註：1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務問題將由各承辦單位負責處理。<br>★5、非本國人士，需提供出入境證明(護照影本)在本國滿 183 天，未提供者方需事先扣除所得稅額 18%。<br><b><u>※簽名欄位都要正本不收電子簽章。</u></b></div>
+  </div>`;
+}
+function C_header(e,C){ return esc(e.header||C.header); }
+function tfTravel(e,p,C){
+  const ev=roc(e.date), amt=money(p.t_amt||e.traAmt);
+  const typeOpts=["任職地","戶籍地","居住地"].map(k=>`${cb(p.t_fromType===k)}${k}`).join(" ")+` ${cb(p.t_fromType==="其他")}其他<span class="uline" style="min-width:70px"></span>`;
+  const known=["台鐵","高鐵","自行開車"];
+  const others=[...p.tools.filter(t=>!known.includes(t)),p.t_other].filter(Boolean).join("、");
+  const tools=known.map(k=>`${cb(p.tools.includes(k))}${k}`).join(" ")+` ${cb(!!others)}其他<span class="uline" style="min-width:90px">${f(others)}</span>`;
+  const items=[[C.f1,e.f1],[C.f2,e.f2],[C.conv,e.convener],["專家姓名",p.p_name],["專家現職",p.p_job],["活動名稱",e.act||e.topic],["活動日期及時間",[ev?`${ev.Y} 年 ${ev.m} 月 ${ev.d} 日`:"",e.time].filter(Boolean).join(" ")]];
+  return `<div class="sheet">${tfTopBlock(C)}
+  <table style="margin-top:-1px"><colgroup><col style="width:13.5%"><col style="width:31%"><col style="width:4%"><col></colgroup>
+   <tr style="height:52px"><td class="c">金　額<div class="xs">(阿拉伯數字)</div></td><td class="c">${amt?f("NT$ "+amt):""}</td>
+     <td rowspan="4" class="vtext">用途摘要</td>
+     <td rowspan="4" style="vertical-align:top;padding:6px 8px">${C_header(e,C)}【交通費】
+      <ol class="sum">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}
+       <li>交通費起訖地點：( ${f(p.t_from)||"&emsp;&emsp;&emsp;"} ) － ( ${f(e.dest)||"&emsp;&emsp;&emsp;"} )<br>${typeOpts}</li>
+       <li>搭乘工具：${tools}</li></ol></td></tr>
+   <tr style="height:150px"><td class="c">付款方式</td><td style="font-size:13px">${cb(true)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
+     <div style="margin-top:6px">${cb(false)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px"></span><br>員編：<span class="uline" style="min-width:110px"></span></div></td></tr>
+   <tr style="height:44px"><td class="c">檢附單據</td><td>單據 <span class="uline" style="min-width:40px">${f(p.t_docs)}</span> 件</td></tr>
+   <tr style="height:52px"><td class="c">經手人</td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
+  </table>
+  <table style="margin-top:-1px"><tr style="height:32px"><td class="c" style="letter-spacing:1.2em;font-size:15px">領據<span style="letter-spacing:0">（校外人員）</span></td></tr></table>
+  <table style="margin-top:-1px" class="c"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:22%"><col style="width:17%"><col></colgroup>
+   <tr style="height:34px"><td>費別</td><td>姓名</td><td>身分證字號</td><td>實領金額</td><td>簽名或蓋章</td></tr>
+   <tr style="height:62px"><td>交通費</td><td>${f(p.p_name)}</td><td>${f(p.p_id)}</td><td>${amt?f(amt):""}</td><td></td></tr>
+   <tr style="height:48px"><td colspan="2">戶籍地址</td><td colspan="3" style="text-align:left">( ${f(p.p_zip)||"&emsp;&emsp;"} ) ${f(p.p_addr)}</td></tr>
+  </table>
+  <div class="notes">註：計程車單據請檢附(勿黏貼)，其餘搭乘汽車、火車、捷運、飛機、高鐵、船舶等，可免檢附票根。<br><b><u>※簽名欄位都要正本不收電子簽章。</u></b></div>
+  </div>`;
+}
+function genReceipt(e,p,kind){
+  const isLec=kind==="lec", raw=Number(isLec? e.lecAmt : (p.t_amt||e.traAmt))||0, amt=money(raw);
+  const d=e.dateMode==="blank"? null: roc(e.date), dob=roc(p.p_dob);
+  let tax="",nhi="",net="",taxOn=null,nhiOn=null,code="";
+  if(!isLec && raw>0){ net=amt; taxOn=false; nhiOn=false; }
+  if(isLec && raw>0 && e.tax==="auto"){
+    code="9B"; const t=raw>20000? Math.round(raw*0.1):0, h=raw>=20000? Math.round(raw*0.0211):0;
+    tax=t?money(t):"0"; nhi=h?money(h):"0"; taxOn=t>0; nhiOn=h>0; net=money(raw-t-h);
+  }
+  const zipBoxes=`<span class="zip">${Array.from({length:Math.max(5,(p.p_zip||"").length)},(_,i)=>`<i class="fill">${esc((p.p_zip||"")[i]||"")}</i>`).join("")}</span>`;
+  const fee=k=>cb((isLec&&k==="演講費")||(!isLec&&k==="交通費"))+k;
+  const title=p.p_title===undefined?"先生":p.p_title;
+  return `<div class="sheet"><div class="rcpt">
+   <h3>國立清華大學</h3><h4>領　據 <span class="en" style="font-size:16px;letter-spacing:0">RECEIPT</span></h4>
+   <div class="ln"><span class="b">領 款 人</span><span class="en">Received By</span>：<span class="uline" style="min-width:170px">${f(p.p_name)}</span>${esc(title)}<span class="b">（請以正楷填寫）</span></div>
+   <div class="ln b" style="font-size:16px">所得格式代號【 ${f(code)||"&emsp;&emsp;&emsp;"} 】</div>
+   <div class="ln">費 用 別 <span class="en">Expense Type</span>：${["演講費","稿費","碩博士班論文指導費"].map(fee).join(" ")} ${cb(false)}</div>
+   <div class="ln" style="padding-left:118px">${["出席費","鐘點費","命題費","交通費","顧問費","獎勵金","工讀金"].map(fee).join(" ")}</div>
+   <div class="ln" style="padding-left:118px">${cb(false)}臨時工資 ${cb(false)}</div>
+   <div class="ln"><span class="b">應　　領</span><span class="en">Gross Paid</span>：NT$ <span class="uline" style="min-width:110px">${f(amt)}</span></div>
+   <div class="ln">所得稅額 <span class="en">Tax Withheld</span>：NT$ <span class="uline" style="min-width:80px">${f(tax)}</span> 稅率：<span class="uline" style="min-width:34px">${taxOn?f("10"):""}</span>％ ${cb(taxOn===true)}應稅 ${cb(taxOn===false)}免扣繳</div>
+   <div class="ln">自提二代健保 <span class="en">The 2nd Generation of NHI</span>：NT$ <span class="uline" style="min-width:70px">${f(nhi)}</span> 費率：<span class="uline">2.11</span>％ ${cb(nhiOn===true)}應提 ${cb(nhiOn===false)}免提</div>
+   <div class="ln"><span class="b">實　　領</span><span class="en">Net Paid</span>：NT$ <span class="uline" style="min-width:110px">${f(net)}</span></div>
+   <div class="ln">員工編號(學號)：<span class="uline"></span> 職稱：<span class="uline"></span> <span class="b">簽名或蓋章</span><span class="en">Signature/Seal</span>：</div>
+   <div class="ln" style="height:36px"></div>
+   <div class="ln b">二代健保補充保費公提(所得格式代號【50】應領金額*2.11%)：NT$</div>
+   <div class="ln">大陸人士 是${cb(false)} 否${cb(true)}　　外籍人士國籍 <span class="en">Nationality</span>：</div>
+   <div class="ln">【無員工編號及學號者請提供下列資料】</div>
+   <div class="ln"><span class="b">戶籍地址（外籍人士填現住地）</span><span class="en">Residence Address</span>：${zipBoxes}</div>
+   <div class="ln" style="padding-left:20px">${f(p.p_addr)}</div>
+   <div class="ln"><span class="b">身份證字號或護照號碼</span><span class="en">ID No./ Passport No.</span>：${f(p.p_id)}</div>
+   <div class="ln">統一證號 <span class="en">ARC ID No.</span>：<span class="uline"></span>(外僑請填寫)</div>
+   <div class="ln">護照英文姓名 <span class="en">Full name</span>：<span class="uline"></span>(未入境者請填)</div>
+   <div class="ln"><span class="b">出生日</span> <span class="en">Day of Birth</span>：${dob?f(`民國 ${dob.y} 年 ${dob.m} 月 ${dob.d} 日`):""}</div>
+   <div class="ln" style="justify-content:center;margin-top:8px">日 期 <span class="en">Date</span>：中華民國 <span class="uline">${d?f(d.y):""}</span> 年 <span class="uline" style="min-width:40px">${d?f(d.m):""}</span> 月 <span class="uline" style="min-width:40px">${d?f(d.d):""}</span> 日</div>
+   <div class="notes" style="margin-top:auto">備註：<br>1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務、補充保費等問題將由各承辦單位負責處理。<br>5、本表應附於『領據專家系統』所製印領清冊後，辦理核銷。</div>
+   <div class="ln" style="gap:120px">製表：<span>計畫主持人/組長：</span></div>
+  </div></div>`;
+}
+function remitSheet(e,p){
+  const d=e.dateMode==="blank"? null: roc(e.date);
+  return `<div class="sheet"><div class="remit">
+  <h3>校外人士/廠商　匯款同意書</h3>
+  <p>一、茲同意國立清華大學將現金電匯入本人(公司)所指定之後述金融機構</p><p class="ind">存款帳戶，作為本人（公司)收受帳款、貨款及其他款項之方式。</p>
+  <p>二、帳戶資料：${cb(p.p_remitKind!=="change")}新申請　${cb(p.p_remitKind==="change")}變更名稱或帳號　${cb(false)}遺忘查詢帳務密碼</p>
+  <p class="ind">存款戶名：${f(p.p_acctName||p.p_name)}</p>
+  <div class="ind"><table class="c"><colgroup><col style="width:26%"><col style="width:26%"><col></colgroup>
+   <tr><td>銀行</td><td>分 行</td><td>帳號(含檢查號碼)</td></tr>
+   <tr><td>${f(p.p_bank)}</td><td>${f(p.p_branch)}</td><td rowspan="2" style="font-size:17px;letter-spacing:.06em">${f(p.p_acct)}</td></tr>
+   <tr><td style="text-align:left">代號 ${f(p.p_bankCode)}</td><td style="text-align:left">代號 ${f(p.p_branchCode)}</td></tr></table></div>
+  <p class="c" style="font-weight:700;font-size:15px">（請影印銀行存摺正面一份附上）公司行號請勿用個人帳戶</p>
+  <p>三、所有款項於國立清華大學匯入上述帳戶後，本人(公司)即承認業己收受</p><p class="ind">該筆款項，其後之風險及發生之問題，概由本人(公司)承擔。</p>
+  <p>四、本人(公司)如帳號或銀行變更時，隨即將新資料通知貴校，以確保本人</p><p class="ind">(公司)之權益。(公司更名請附申請變更核准函或變更登記表影本)。</p>
+  <p class="ind">此致</p><p>國立清華大學</p>
+  <div class="line"><span>身份證字號(個人)/統一編號(公司)：</span><span class="v">${f(p.p_id)}</span></div>
+  <div class="line"><span>通 訊 地 址：</span><span class="v" style="font-size:14.5px">${f(p.p_mail||p.p_addr)}</span></div>
+  <div class="line"><span>電　　　話：</span><span class="v">${f(p.p_phone)}</span></div>
+  <div class="line"><span>E-mail：</span><span class="v">${f(p.p_email)}</span><span style="font-size:13px">(匯款後將以 E-mail 通知)</span></div>
+  <p style="margin-top:10px">簽名或蓋章（個人）/ 統一發票專用章、公司及負責人章（公司）：</p>
+  <div style="height:70px"></div>
+  <p class="c">中 華 民 國　${d?f(d.y):"&emsp;&emsp;"}　年　${d?f(d.m):"&emsp;"}　月　${d?f(d.d):"&emsp;"}　日</p>
+  <p class="c" style="font-size:13px">※簽名欄位都要正本不收電子簽章。</p>
+  <p style="text-align:right;font-size:12px">108.09.04 修訂</p>
+  </div></div>`;
+}
+function copiesSheet(e,p,w){
+  const fig=(src,cap,cls="")=>`<figure class="${cls}">${src?`<img src="${src}" alt="">`:`<div class="empty">${cap}（未上傳）</div>`}<figcaption>${cap}</figcaption></figure>`;
+  return `<div class="sheet"><div class="copies">
+   <h3>${esc(p.p_name||"講者")}　${e.needId==="0"?"存摺影本":"身分證及存摺影本"}</h3>
+   ${e.needId==="0"?"":`<div class="pair">${fig(w.idFront,"身分證正面")}${fig(w.idBack,"身分證反面")}</div>`}
+   ${fig(w.passbook,"存摺封面內頁（戶名、帳號）","pb")}
+  </div></div>`;
+}
+
+/* ---------- build ---------- */
+function defaultWm(e){
+  const ev=roc(e.date), who=CAT[e.cat].tf? "教學發展中心" : (e.unit||"");
+  return `僅供國立清華大學${who}「${e.topic||"講座"}」核銷使用 他用無效${ev?` ${ev.y}.${ev.m}.${ev.d}`:""}`;
+}
+let wmTouched=false;
+function applyVisibility(e){
+  const C=CAT[e.cat];
+  $$(".tf-only").forEach(x=>x.hidden=!C.tf); $$(".gen-only").forEach(x=>x.hidden=C.tf);
+  $$(".tf-proj").forEach(x=>x.hidden=!C.tf);
+  $$(".lec-only").forEach(x=>x.hidden=!e.lec); $$(".tra-only").forEach(x=>x.hidden=!e.tra);
+  $$(".id-only").forEach(x=>x.hidden=e.needId==="0");
+  if(C.tf){ $("#lblF1").textContent=C.f1; $("#lblF2").textContent=C.f2; { const h=$("#ev_header"); if(!h.dataset.touched||!h.value.trim()||Object.values(CAT).some(c=>c.header===h.value.trim())) h.value=C.header; } }
+  $("#lblConvener").textContent=C.conv;
+  if(!wmTouched) $("#wmText").value=defaultWm(e);
+}
+function checks(e,p){
+  const m=[]; const C=CAT[e.cat];
+  if(!e.lec&&!e.tra) m.push(["bad","請至少勾選一個要核銷的項目。"]);
+  if(!p.p_name) m.push(["warn","尚未填寫姓名。"]);
+  if(p.p_id && !idValid(p.p_id)) m.push(["bad","身分證字號格式或檢查碼不正確，請再核對一次。"]);
+  if(!p.p_id) m.push(["warn","尚未填寫身分證字號。"]);
+  if(p.p_addr && !/鄰/.test(p.p_addr)) m.push(["warn","戶籍地址看起來沒有「鄰」，主計室要求寫到區、鄰、里。"]);
+  if(p.p_addr && !/里|村/.test(p.p_addr)) m.push(["warn","戶籍地址看起來沒有「里／村」。"]);
+  if(!p.p_addr) m.push(["warn","尚未填寫戶籍地址。"]);
+  if(!p.p_acct||!p.p_bankCode) m.push(["warn","匯款帳戶資料不完整。"]);
+  if(p.p_acctName && p.p_name && p.p_acctName!==p.p_name) m.push(["bad","存款戶名與姓名不同。校外人士匯款需匯入本人帳戶。"]);
+  if(!imgs.passbook) m.push(["warn","尚未上傳存摺影像。"]);
+  if(e.needId!=="0" && (!imgs.idFront||!imgs.idBack)) m.push(["warn","尚未上傳身分證正反面。"]);
+  if(C.tf && !p.p_job) m.push(["warn","教發中心單據需要「專家現職」。"]);
+  if(e.tra){
+    const hsinchu=/新竹/.test(p.t_from);
+    if(hsinchu) m.push(["bad","出發地在新竹縣市，依規定不得報支交通費。"]);
+    if(!p.t_from) m.push(["warn","尚未填寫交通出發地。"]);
+    if(!(Number(p.t_amt)||Number(e.traAmt))) m.push(["warn","尚未填寫交通費金額。"]);
+    if(p.tools.includes("計程車")) m.push(["info","搭計程車需附收據或購票證明（勿黏貼），交給邀請人。"]);
+    if(p.tools.includes("自行開車")) m.push(["info","自行開車每公里 3 元（機車 2 元），請另附 Google 地圖起訖里程截圖。"]);
+  }
+  if(e.lec && !C.tf && Number(e.lecAmt)>=20000 && e.tax!=="auto") m.push(["info","演講費達 2 萬元，承辦人需處理所得稅與二代健保，實領會少於應領。"]);
+  if(C.tf && e.lec) m.push(["info","校內人士（學生、專任教師、職員）不得支領教發中心講座鐘點費。"]);
+  if(!m.some(x=>x[0]!=="info")) m.unshift(["info","資料齊全。下載 PDF 後列印、在簽名欄親筆簽名，連同正本交給邀請人。"]);
+  return m;
+}
+let building=0;
+async function build(){
+  const my=++building;
+  const e=readEvent(), p=readPerson(), C=CAT[e.cat];
+  applyVisibility(e);
+  const wmText=$("#wmText").value.trim()||defaultWm(e);
+  const w={};
+  for(const k of Object.keys(imgs)) w[k]=imgs[k]? await watermark(imgs[k],wmText):null;
+  if(my!==building) return;
+  const pages=[];
+  if(C.tf){
+    if(e.lec) pages.push(["支出憑證黏存單｜講座鐘點費",tfLecture(e,p,C)]);
+    if(e.tra) pages.push(["支出憑證黏存單｜交通費",tfTravel(e,p,C)]);
+  }else{
+    if(e.lec) pages.push(["領據｜演講費",genReceipt(e,p,"lec")]);
+    if(e.tra) pages.push(["領據｜交通費",genReceipt(e,p,"tra")]);
+  }
+  pages.push(["校外人士匯款同意書",remitSheet(e,p)]);
+  pages.push([e.needId==="0"?"存摺影本":"身分證及存摺影本（浮水印）",copiesSheet(e,p,w)]);
+  $("#printroot").innerHTML=pages.map(x=>x[1]).join("");
+  const pv=$("#preview"); pv.innerHTML=pages.map(([t,h])=>`<div class="pv-label">${esc(t)}</div><div class="pv-sheet">${h}</div>`).join("");
+  scalePreview();
+  $("#pvCount").textContent=`共 ${pages.length} 頁`;
+  $("#msgs").innerHTML=checks(e,p).map(([k,t])=>`<li class="${k}">${esc(t)}</li>`).join("");
+  ["passbook","idFront","idBack"].forEach(k=>{
+    const d=$("#drop_"+k); d.querySelector(".thumb").innerHTML=imgs[k]?`<img src="${w[k]}" alt="">`:"<span>尚未上傳</span>";
+    d.classList.toggle("need",!imgs[k]);
+  });
+  saveLocal();
+}
+function scalePreview(){ $$(".pv-sheet").forEach(b=>{ const s=b.clientWidth/794; b.firstElementChild.style.transform=`scale(${s})`; }); }
+let t=null; function schedule(){ clearTimeout(t); t=setTimeout(build,180); }
+window.addEventListener("resize",scalePreview);
+
+/* ---------- events ---------- */
+document.addEventListener("input",ev=>{
+  if(ev.target.id==="wmText") wmTouched=!!ev.target.value.trim();
+  if(ev.target.id==="ev_header") ev.target.dataset.touched="1";
+  if(ev.target.id==="p_bank"){ const b=BANKS.find(([,n])=>n===ev.target.value.trim()); if(b) $("#p_bankCode").value=b[0]; }
+  if(ev.target.closest("#printroot")) return; schedule();
+});
+document.addEventListener("change",ev=>{
+  if(ev.target.name==="cat"){ delete $("#ev_header").dataset.touched; }
+  schedule();
+});
+$$("[data-pick]").forEach(b=>b.onclick=()=>{pickTarget=b.dataset.pick; $("#fileIn").value=""; $("#fileIn").click();});
+$$("[data-rot]").forEach(b=>b.onclick=async()=>{const k=b.dataset.rot; if(imgs[k]){imgs[k]=await rotate(imgs[k]); build();}});
+$$("[data-clr]").forEach(b=>b.onclick=()=>{imgs[b.dataset.clr]=null; build();});
+$("#fileIn").addEventListener("change",async ev=>{
+  const file=ev.target.files[0]; if(!file||!pickTarget) return;
+  try{ imgs[pickTarget]=await loadImageFile(file); }catch(_){ setStatus("這個檔案讀不出影像，請改用 JPG 或 PNG。"); }
+  build();
+});
+["passbook","idFront","idBack"].forEach(k=>{
+  const d=$("#drop_"+k);
+  d.addEventListener("dragover",e=>{e.preventDefault();});
+  d.addEventListener("drop",async e=>{e.preventDefault(); const file=e.dataTransfer.files[0]; if(file){ try{imgs[k]=await loadImageFile(file);}catch(_){} build(); }});
+});
+
+$("#btnShare").onclick=async()=>{
+  const e=readEvent(); const url=location.href.split("#")[0]+"#e="+b64e(e);
+  $("#shareOut").value=url;
+  try{ await navigator.clipboard.writeText(url); $("#shareMsg").textContent="已複製連結。把它傳給講者即可，連結不含任何講者個資。"; }
+  catch(_){ $("#shareOut").select(); $("#shareMsg").textContent="請手動複製上面的連結傳給講者。"; }
+};
+
+function setStatus(s){ $("#pdfStatus").textContent=s; }
+$("#btnPrint").onclick=async()=>{ await build(); window.print(); };
+$("#btnPdf").onclick=async()=>{
+  if(!window.html2canvas||!window.jspdf){ setStatus("PDF 元件沒有載入，請確認網路後重新整理，或改用「直接列印」另存 PDF。"); return; }
+  const btn=$("#btnPdf"); btn.disabled=true;
+  try{
+    await build(); if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+    const sheets=$$("#printroot .sheet"); const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",compress:true});
+    for(let i=0;i<sheets.length;i++){
+      setStatus(`產生第 ${i+1}/${sheets.length} 頁…`);
+      const c=await html2canvas(sheets[i],{scale:2,backgroundColor:"#ffffff",logging:false,windowWidth:900});
+      if(i) pdf.addPage();
+      pdf.addImage(c.toDataURL("image/jpeg",0.9),"JPEG",0,0,210,297,undefined,"FAST");
+    }
+    const e=readEvent(), p=readPerson();
+    const name=`${(e.date||"").replace(/-/g,"")}_${p.p_name||"講者"}_講座單據包.pdf`;
+    pdf.save(name); setStatus(`已下載 ${name}`);
+  }catch(err){ console.error(err); setStatus("產生 PDF 時出錯，可改用「直接列印」另存 PDF。"); }
+  finally{ btn.disabled=false; }
+};
+
+/* ---------- persistence ---------- */
+function saveLocal(){
+  try{
+    if(!$("#remember").checked){ localStorage.removeItem(LS_KEY); return; }
+    const p=readPerson(); delete p.t_amt; delete p.t_docs;
+    localStorage.setItem(LS_KEY,JSON.stringify({v:1,person:p}));
+  }catch(_){}
+}
+function loadLocal(){
+  try{ const s=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(s&&s.person){ writePerson(s.person); $("#remember").checked=true; } }catch(_){}
+}
+function download(blob,name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500); }
+$("#btnExport").onclick=()=>{
+  const data={v:1,kind:"nthu-speaker-pack",person:readPerson(),images:imgs};
+  download(new Blob([JSON.stringify(data)],{type:"application/json"}),`${readPerson().p_name||"講者"}_單據資料.json`);
+};
+$("#btnImport").onclick=()=>{ $("#importIn").value=""; $("#importIn").click(); };
+$("#importIn").addEventListener("change",async ev=>{
+  const file=ev.target.files[0]; if(!file) return;
+  try{ const d=JSON.parse(await file.text()); if(d.person) writePerson(d.person); if(d.images) Object.keys(imgs).forEach(k=>imgs[k]=d.images[k]||imgs[k]); build(); setStatus("已讀入資料檔。"); }
+  catch(_){ setStatus("這不是本工具的資料檔。"); }
+});
+
+/* ---------- boot ---------- */
+function lockEvent(e){
+  const C=CAT[e.cat], ev=roc(e.date);
+  const rows=[["單據類別",C.label],["項目",[e.lec&&"演講費",e.tra&&"交通費"].filter(Boolean).join("、")],
+    C.tf&&[C.f1,e.f1], C.tf&&[C.f2,e.f2], [C.conv,e.convener],["演講主題",e.topic],
+    ["日期時間",[ev?`${ev.Y}/${ev.m}/${ev.d}`:"",e.time].filter(Boolean).join(" ")],["地點",e.place],
+    e.lec&&e.lecAmt&&["演講費",`NT$ ${money(e.lecAmt)}`]].filter(r=>r&&r[1]);
+  $("#eventLocked").innerHTML=`<strong>邀請人已設定好這場演講</strong><dl>${rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+   <button type="button" id="btnUnlock" style="margin-top:8px;font-size:.85rem;padding:4px 10px">資料有誤，我要修改</button>`;
+  $("#eventLocked").hidden=false; $("#eventForm").hidden=true;
+  $("#btnUnlock").onclick=()=>{ $("#eventLocked").hidden=true; $("#eventForm").hidden=false; };
+  if(e.traAmt && !$("#t_amt").value) $("#t_amt").value=e.traAmt;
+}
+loadLocal();
+const m=location.hash.match(/[#&]e=([A-Za-z0-9_-]+)/);
+if(m){ try{ const e=b64d(m[1]); writeEvent(e); if(e.header) $("#ev_header").dataset.touched="1"; fromLink=true; lockEvent(e);}catch(_){ } }
+if(!fromLink && !$("#ev_date").value){ /* sample so the first view shows a filled sheet */ }
+build();
+})();
+</script>
+</body>
+</html>
