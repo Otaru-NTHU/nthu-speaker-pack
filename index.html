@@ -107,9 +107,14 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
 .sheet .uline{display:inline-block;border-bottom:1px solid #000;min-width:60px;padding:0 4px;text-align:center}
 .sheet .notes{margin-top:6px;font-size:11.5px;line-height:1.55}
 /* generic receipt */
-.rcpt{border:1.5px solid #000;height:100%;padding:26px 30px;display:flex;flex-direction:column;gap:12px;font-size:14.5px}
+.rcpt{border:1.5px solid #000;height:100%;padding:26px 30px;display:flex;flex-direction:column;gap:12px;font-size:14.5px;position:relative}
+.rcpt .beside{padding-right:236px}
+.fbox{position:absolute;right:16px;width:222px;min-height:64px;border:1px solid #000;padding:6px 9px;font-size:13px;line-height:1.5;background:#fff;overflow-wrap:anywhere}
+.fbox .k{color:#000}
+.fspacer{height:0;flex:none}
+.fit1{display:inline-block;white-space:nowrap;overflow:hidden;vertical-align:bottom;max-width:100%}
 .rcpt h3{text-align:center;font-size:24px;letter-spacing:.6em;margin:6px 0 0;font-weight:600;text-decoration:underline;text-underline-offset:6px}
-.rcpt h4{text-align:center;font-size:19px;letter-spacing:.3em;margin:4px 0 8px;font-weight:600}
+.rcpt h4{text-align:left;padding-left:200px;font-size:19px;letter-spacing:.3em;margin:4px 0 8px;font-weight:600}
 .rcpt .ln{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px}
 .rcpt .en{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a2b80}
 .rcpt .b{font-weight:700}
@@ -191,8 +196,9 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
         <div class="grid" style="margin-top:10px">
           <label class="f"><span>單據上的日期</span>
             <select id="ev_dateMode"><option value="event">填入演講日期</option><option value="blank">留白（簽名時手寫）</option></select></label>
-          <label class="f tf-only"><span>鐘點費單「費別」勾選</span>
-            <select id="ev_feeKind"><option>演講費</option><option>鐘點費</option></select></label>
+          <label class="f"><span>演講費單據「費別」勾選</span>
+            <select id="ev_feeKind"><option value="">依範本（教發勾演講費、通用勾鐘點費）</option><option>演講費</option><option>鐘點費</option></select></label>
+          <label class="f full gen-only"><span>領據右上框「演講題目」文字（空白時自動用主題＋日期時間）</span><textarea id="ev_boxLec" rows="2"></textarea></label>
           <label class="f gen-only"><span>所得稅／二代健保</span>
             <select id="ev_tax"><option value="blank">留白，由承辦人填</option><option value="auto">依 9B 試算（單次 >2 萬扣 10%、≥2 萬扣 2.11%）</option></select></label>
           <label class="f"><span>身分證影本</span>
@@ -214,7 +220,7 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
     <p class="hint">依「印領清冊／領據」需要的欄位。戶籍地址請寫到區、鄰、里，這是主計室最常退件的地方。</p>
     <div class="grid">
       <label class="f"><span class="req">姓名</span><input type="text" id="p_name" autocomplete="name"></label>
-      <label class="f gen-only"><span>稱謂（通用領據）</span><select id="p_title"><option>先生</option><option>女士</option><option value="">不顯示</option></select></label>
+      <label class="f gen-only"><span>稱謂（通用領據）</span><select id="p_title"><option>先生</option><option>小姐</option><option value="">先生/小姐（不刪）</option></select></label>
       <label class="f tf-only"><span class="req">現職（單位／職稱）</span><input type="text" id="p_job" placeholder="例：○○大學 ○○系 副教授"></label>
       <label class="f"><span class="req">身分證字號</span><input type="text" id="p_id" maxlength="10" autocomplete="off" style="text-transform:uppercase"></label>
       <label class="f"><span class="req">出生年月日</span><input type="date" id="p_dob" min="1920-01-01"></label>
@@ -347,7 +353,7 @@ const CAT={
 const imgs={passbook:null,idFront:null,idBack:null}; // dataURL (downscaled, unwatermarked)
 let fromLink=false, pickTarget=null;
 
-const EV_IDS=["ev_f1","ev_f2","ev_convener","ev_unit","ev_topic","ev_date","ev_time","ev_place","ev_lecAmt","ev_traAmt","ev_dest","ev_act","ev_dateMode","ev_feeKind","ev_tax","ev_needId","ev_header"];
+const EV_IDS=["ev_f1","ev_f2","ev_convener","ev_unit","ev_topic","ev_date","ev_time","ev_place","ev_lecAmt","ev_traAmt","ev_dest","ev_act","ev_dateMode","ev_feeKind","ev_tax","ev_needId","ev_header","ev_boxLec"];
 const P_IDS=["p_name","p_title","p_job","p_id","p_dob","p_zip","p_addr","p_mail","p_phone","p_email","p_bank","p_bankCode","p_branch","p_branchCode","p_acct","p_acctName","p_remitKind","t_from","t_fromType","t_other","t_amt","t_docs"];
 
 function readEvent(){
@@ -449,7 +455,7 @@ function tfLecture(e,p,C){
    <tr style="height:52px"><td class="c">金　額<div class="xs">(阿拉伯數字)</div></td><td class="c">${amt?f("NT$ "+amt):""}</td>
      <td rowspan="${C.bilingual?4:3}" class="vtext">用途摘要</td>
      <td rowspan="${C.bilingual?4:3}" style="vertical-align:top;padding:6px 8px">${C_header(e,C)}【講座鐘點費】
-       <ol class="sum">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}</ol></td></tr>
+       <ol class="sum shrink">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}</ol></td></tr>
    <tr style="height:150px"><td class="c">付款方式</td><td style="font-size:13px">${cb(true)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
      <div style="margin-top:6px">${cb(false)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px"></span><br>員編：<span class="uline" style="min-width:110px"></span></div></td></tr>
    <tr style="height:56px"><td class="c">經手人<div class="xs">(聯絡方式)</div></td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
@@ -462,7 +468,7 @@ function tfLecture(e,p,C){
    <tr style="height:56px"><td>${f(p.p_name)}</td><td>${amt?f(amt):""}</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td></td></tr>
    <tr style="height:40px"><td>身分證字號</td><td colspan="5" style="text-align:left">${f(p.p_id)}</td></tr>
    <tr style="height:40px"><td>西元出生年月日</td><td colspan="5" style="text-align:left">${f(dob)}</td></tr>
-   <tr style="height:48px"><td>戶籍地址<div class="xs">(填寫區、鄰、里)</div></td><td colspan="5" style="text-align:left">( ${f(p.p_zip)||"&emsp;&emsp;"} ) ${f(p.p_addr)}</td></tr>
+   <tr style="height:48px"><td>戶籍地址<div class="xs">(填寫區、鄰、里)</div></td><td colspan="5" class="shrink" style="text-align:left">( ${f(p.p_zip)||"&emsp;&emsp;"} ) ${f(p.p_addr)}</td></tr>
   </table>
   <div class="notes">備註：1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務問題將由各承辦單位負責處理。<br>★5、非本國人士，需提供出入境證明(護照影本)在本國滿 183 天，未提供者方需事先扣除所得稅額 18%。<br><b><u>※簽名欄位都要正本不收電子簽章。</u></b></div>
   </div>`;
@@ -480,7 +486,7 @@ function tfTravel(e,p,C){
    <tr style="height:52px"><td class="c">金　額<div class="xs">(阿拉伯數字)</div></td><td class="c">${amt?f("NT$ "+amt):""}</td>
      <td rowspan="4" class="vtext">用途摘要</td>
      <td rowspan="4" style="vertical-align:top;padding:6px 8px">${C_header(e,C)}【交通費】
-      <ol class="sum">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}
+      <ol class="sum shrink">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}
        <li>交通費起訖地點：( ${f(p.t_from)||"&emsp;&emsp;&emsp;"} ) － ( ${f(e.dest)||"&emsp;&emsp;&emsp;"} )<br>${typeOpts}</li>
        <li>搭乘工具：${tools}</li></ol></td></tr>
    <tr style="height:150px"><td class="c">付款方式</td><td style="font-size:13px">${cb(true)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
@@ -492,14 +498,14 @@ function tfTravel(e,p,C){
   <table style="margin-top:-1px" class="c"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:22%"><col style="width:17%"><col></colgroup>
    <tr style="height:34px"><td>費別</td><td>姓名</td><td>身分證字號</td><td>實領金額</td><td>簽名或蓋章</td></tr>
    <tr style="height:62px"><td>交通費</td><td>${f(p.p_name)}</td><td>${f(p.p_id)}</td><td>${amt?f(amt):""}</td><td></td></tr>
-   <tr style="height:48px"><td colspan="2">戶籍地址</td><td colspan="3" style="text-align:left">( ${f(p.p_zip)||"&emsp;&emsp;"} ) ${f(p.p_addr)}</td></tr>
+   <tr style="height:48px"><td colspan="2">戶籍地址</td><td colspan="3" class="shrink" style="text-align:left">( ${f(p.p_zip)||"&emsp;&emsp;"} ) ${f(p.p_addr)}</td></tr>
   </table>
   <div class="notes">註：計程車單據請檢附(勿黏貼)，其餘搭乘汽車、火車、捷運、飛機、高鐵、船舶等，可免檢附票根。<br><b><u>※簽名欄位都要正本不收電子簽章。</u></b></div>
   </div>`;
 }
 function genReceipt(e,p,kind){
   const isLec=kind==="lec", raw=Number(isLec? e.lecAmt : (p.t_amt||e.traAmt))||0, amt=money(raw);
-  const d=e.dateMode==="blank"? null: roc(e.date), dob=roc(p.p_dob);
+  const d=e.dateMode==="blank"? null: roc(e.date), dob=roc(p.p_dob), ev=roc(e.date);
   let tax="",nhi="",net="",taxOn=null,nhiOn=null,code="";
   if(!isLec && raw>0){ net=amt; taxOn=false; nhiOn=false; }
   if(isLec && raw>0 && e.tax==="auto"){
@@ -507,13 +513,28 @@ function genReceipt(e,p,kind){
     tax=t?money(t):"0"; nhi=h?money(h):"0"; taxOn=t>0; nhiOn=h>0; net=money(raw-t-h);
   }
   const zipBoxes=`<span class="zip">${Array.from({length:Math.max(5,(p.p_zip||"").length)},(_,i)=>`<i class="fill">${esc((p.p_zip||"")[i]||"")}</i>`).join("")}</span>`;
-  const fee=k=>cb((isLec&&k==="演講費")||(!isLec&&k==="交通費"))+k;
-  const title=p.p_title===undefined?"先生":p.p_title;
+  const lecKind=e.feeKind||"鐘點費";
+  const fee=k=>cb((isLec&&k===lecKind)||(!isLec&&k==="交通費"))+k;
+  const title=p.p_title===undefined||p.p_title===""? "先生/小姐" : p.p_title;
+  let box;
+  if(isLec){
+    const when=[ev?`${ev.y}年${ev.m}月${ev.d}日`:"",e.time].filter(Boolean).join(" ");
+    box = e.boxLec
+      ? `<span class="fill">${esc(e.boxLec).replace(/\n/g,"<br>")}</span>`
+      : `演講題目：${f(e.topic)}${when?`<br>${f("（"+when+"）")}`:"(日期、時間)"}`;
+  }else{
+    const tools=[...p.tools,p.t_other].filter(Boolean).join("、");
+    const route=p.t_from? `${p.t_from}－${e.dest||"國立清華大學"}（往返）` : "";
+    box = `交通方式：${f(tools)}<br>起訖地點：${f(route)}`;
+  }
   return `<div class="sheet"><div class="rcpt">
-   <h3>國立清華大學</h3><h4>領　據 <span class="en" style="font-size:16px;letter-spacing:0">RECEIPT</span></h4>
-   <div class="ln"><span class="b">領 款 人</span><span class="en">Received By</span>：<span class="uline" style="min-width:170px">${f(p.p_name)}</span>${esc(title)}<span class="b">（請以正楷填寫）</span></div>
-   <div class="ln b" style="font-size:16px">所得格式代號【 ${f(code)||"&emsp;&emsp;&emsp;"} 】</div>
-   <div class="ln">費 用 別 <span class="en">Expense Type</span>：${["演講費","稿費","碩博士班論文指導費"].map(fee).join(" ")} ${cb(false)}</div>
+   <h3>國立清華大學</h3>
+   <h4>領　據 <span class="en" style="font-size:16px;letter-spacing:0">RECEIPT</span></h4>
+   <div class="fbox" data-fit="box">${box}</div>
+   <div class="ln beside"><span class="b">領 款 人</span><span class="en">Received By</span>：<span class="uline fit1" style="min-width:90px;max-width:150px">${f(p.p_name)}</span>${esc(title)}<span class="b">（請以正楷填寫）</span></div>
+   <div class="ln b beside" style="font-size:16px">所得格式代號【 ${f(code)||"&emsp;&emsp;&emsp;"} 】</div>
+   <div class="fspacer"></div>
+   <div class="ln fee1">費 用 別 <span class="en">Expense Type</span>：${["演講費","稿費","碩博士班論文指導費"].map(fee).join(" ")} ${cb(false)}</div>
    <div class="ln" style="padding-left:118px">${["出席費","鐘點費","命題費","交通費","顧問費","獎勵金","工讀金"].map(fee).join(" ")}</div>
    <div class="ln" style="padding-left:118px">${cb(false)}臨時工資 ${cb(false)}</div>
    <div class="ln"><span class="b">應　　領</span><span class="en">Gross Paid</span>：NT$ <span class="uline" style="min-width:110px">${f(amt)}</span></div>
@@ -522,17 +543,17 @@ function genReceipt(e,p,kind){
    <div class="ln"><span class="b">實　　領</span><span class="en">Net Paid</span>：NT$ <span class="uline" style="min-width:110px">${f(net)}</span></div>
    <div class="ln">員工編號(學號)：<span class="uline"></span> 職稱：<span class="uline"></span> <span class="b">簽名或蓋章</span><span class="en">Signature/Seal</span>：</div>
    <div class="ln" style="height:36px"></div>
-   <div class="ln b">二代健保補充保費公提(所得格式代號【50】應領金額*2.11%)：NT$</div>
+   <div class="ln b">二代健保補充保費公提(所得格式代號【50】應領金額*2.11％)：NT$</div>
    <div class="ln">大陸人士 是${cb(false)} 否${cb(true)}　　外籍人士國籍 <span class="en">Nationality</span>：</div>
    <div class="ln">【無員工編號及學號者請提供下列資料】</div>
    <div class="ln"><span class="b">戶籍地址（外籍人士填現住地）</span><span class="en">Residence Address</span>：${zipBoxes}</div>
-   <div class="ln" style="padding-left:20px">${f(p.p_addr)}</div>
+   <div class="ln shrink" style="padding-left:20px">${f(p.p_addr)}</div>
    <div class="ln"><span class="b">身份證字號或護照號碼</span><span class="en">ID No./ Passport No.</span>：${f(p.p_id)}</div>
    <div class="ln">統一證號 <span class="en">ARC ID No.</span>：<span class="uline"></span>(外僑請填寫)</div>
    <div class="ln">護照英文姓名 <span class="en">Full name</span>：<span class="uline"></span>(未入境者請填)</div>
    <div class="ln"><span class="b">出生日</span> <span class="en">Day of Birth</span>：${dob?f(`民國 ${dob.y} 年 ${dob.m} 月 ${dob.d} 日`):""}</div>
    <div class="ln" style="justify-content:center;margin-top:8px">日 期 <span class="en">Date</span>：中華民國 <span class="uline">${d?f(d.y):""}</span> 年 <span class="uline" style="min-width:40px">${d?f(d.m):""}</span> 月 <span class="uline" style="min-width:40px">${d?f(d.d):""}</span> 日</div>
-   <div class="notes" style="margin-top:auto">備註：<br>1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務、補充保費等問題將由各承辦單位負責處理。<br>5、本表應附於『領據專家系統』所製印領清冊後，辦理核銷。</div>
+   <div class="notes rnotes" style="margin-top:auto">備註：<br>1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務、補充保費等問題將由各承辦單位負責處理。<br>5、本表應附於『領據專家系統』所製印領清冊後，辦理核銷。</div>
    <div class="ln" style="gap:120px">製表：<span>計畫主持人/組長：</span></div>
   </div></div>`;
 }
@@ -552,7 +573,7 @@ function remitSheet(e,p){
   <p>四、本人(公司)如帳號或銀行變更時，隨即將新資料通知貴校，以確保本人</p><p class="ind">(公司)之權益。(公司更名請附申請變更核准函或變更登記表影本)。</p>
   <p class="ind">此致</p><p>國立清華大學</p>
   <div class="line"><span>身份證字號(個人)/統一編號(公司)：</span><span class="v">${f(p.p_id)}</span></div>
-  <div class="line"><span>通 訊 地 址：</span><span class="v" style="font-size:14.5px">${f(p.p_mail||p.p_addr)}</span></div>
+  <div class="line"><span>通 訊 地 址：</span><span class="v shrink" style="font-size:14.5px">${f(p.p_mail||p.p_addr)}</span></div>
   <div class="line"><span>電　　　話：</span><span class="v">${f(p.p_phone)}</span></div>
   <div class="line"><span>E-mail：</span><span class="v">${f(p.p_email)}</span><span style="font-size:13px">(匯款後將以 E-mail 通知)</span></div>
   <p style="margin-top:10px">簽名或蓋章（個人）/ 統一發票專用章、公司及負責人章（公司）：</p>
@@ -569,6 +590,49 @@ function copiesSheet(e,p,w){
    ${e.needId==="0"?"":`<div class="pair">${fig(w.idFront,"身分證正面")}${fig(w.idBack,"身分證反面")}</div>`}
    ${fig(w.passbook,"存摺封面內頁（戶名、帳號）","pb")}
   </div></div>`;
+}
+
+
+/* ---------- auto-fit: keep variable-length text inside the printed layout ---------- */
+const PAGE_BOTTOM=1123-30;
+function px(el){ return parseFloat(getComputedStyle(el).fontSize); }
+function fitOneLine(el,min){ let fs=px(el); while(el.scrollWidth>el.clientWidth+1 && fs>min){ fs-=0.5; el.style.fontSize=fs+"px"; } return el.scrollWidth<=el.clientWidth+1; }
+function contentBottom(sheet){ const top=sheet.getBoundingClientRect().top; let b=0; sheet.querySelectorAll(":scope > *").forEach(c=>{ b=Math.max(b,c.getBoundingClientRect().bottom-top, c.scrollHeight? c.getBoundingClientRect().top-top+c.scrollHeight:0); }); return b; }
+function fitSheets(){
+  const warns=[];
+  $$("#printroot .sheet").forEach(sheet=>{
+    sheet.querySelectorAll(".fit1").forEach(el=>{ if(!fitOneLine(el,10)) warns.push("姓名過長，已縮到最小字級仍放不下。"); });
+    // 1) floating box on the generic receipt
+    const box=sheet.querySelector(".fbox");
+    if(box){
+      const rc=sheet.querySelector(".rcpt"), h4=rc.querySelector("h4"), fee1=rc.querySelector(".fee1"), sp=rc.querySelector(".fspacer"), notes=rc.querySelector(".rnotes");
+      box.style.top=(h4.offsetTop)+"px";
+      const avail=()=>fee1.offsetTop-box.offsetTop-8;
+      let fs=13;
+      // step a: shrink 13 → 10.5px
+      while(box.offsetHeight>avail() && fs>10.5){ fs-=0.5; box.style.fontSize=fs+"px"; }
+      // step b: push the lines below the box down, using the page's spare space
+      if(box.offsetHeight>avail()){
+        const prev=notes.previousElementSibling, slack=notes.offsetTop-(prev.offsetTop+prev.offsetHeight)-14;
+        sp.style.height=Math.max(0,Math.min(box.offsetHeight-avail(),slack))+"px";
+      }
+      // step c: last resort, shrink to 9px
+      while(box.offsetHeight>avail() && fs>9){ fs-=0.5; box.style.fontSize=fs+"px"; }
+      if(box.offsetHeight>avail()) warns.push("領據右上框的文字太長，縮到最小字級仍會壓到下方欄位，請到進階設定縮短「演講題目」框內文字。");
+    }
+    // 2) whole page: shrink marked blocks until the page content fits A4
+    const shr=[...sheet.querySelectorAll(".shrink")];
+    if(shr.length){
+      let guard=0;
+      while(contentBottom(sheet)>PAGE_BOTTOM && guard++<40){
+        let changed=false;
+        shr.forEach(el=>{ const fs=px(el); if(fs>9.5){ el.style.fontSize=(fs-0.5)+"px"; changed=true; } });
+        if(!changed) break;
+      }
+      if(contentBottom(sheet)>PAGE_BOTTOM) warns.push("有欄位文字太長，單據超出一頁，請精簡課程名稱、主題或地址。");
+    }
+  });
+  return [...new Set(warns)];
 }
 
 /* ---------- build ---------- */
@@ -634,10 +698,15 @@ async function build(){
   pages.push(["校外人士匯款同意書",remitSheet(e,p)]);
   pages.push([e.needId==="0"?"存摺影本":"身分證及存摺影本（浮水印）",copiesSheet(e,p,w)]);
   $("#printroot").innerHTML=pages.map(x=>x[1]).join("");
-  const pv=$("#preview"); pv.innerHTML=pages.map(([t,h])=>`<div class="pv-label">${esc(t)}</div><div class="pv-sheet">${h}</div>`).join("");
+  if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+  if(my!==building) return;
+  const fitWarn=fitSheets();
+  const done=$$("#printroot .sheet").map(x=>x.outerHTML);
+  const pv=$("#preview"); pv.innerHTML=pages.map(([t],i)=>`<div class="pv-label">${esc(t)}</div><div class="pv-sheet">${done[i]}</div>`).join("");
   scalePreview();
   $("#pvCount").textContent=`共 ${pages.length} 頁`;
-  $("#msgs").innerHTML=checks(e,p).map(([k,t])=>`<li class="${k}">${esc(t)}</li>`).join("");
+  const ms=checks(e,p); fitWarn.forEach(w=>ms.unshift(["warn",w]));
+  $("#msgs").innerHTML=ms.map(([k,t])=>`<li class="${k}">${esc(t)}</li>`).join("");
   ["passbook","idFront","idBack"].forEach(k=>{
     const d=$("#drop_"+k); d.querySelector(".thumb").innerHTML=imgs[k]?`<img src="${w[k]}" alt="">`:"<span>尚未上傳</span>";
     d.classList.toggle("need",!imgs[k]);
