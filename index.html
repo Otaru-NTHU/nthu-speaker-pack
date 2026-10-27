@@ -7,7 +7,7 @@
 <meta name="description" content="講者輸入一次資料，產出國立清華大學講座領據、匯款同意書與加浮水印證件影本。所有資料只在瀏覽器內處理。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&family=LXGW+WenKai+TC:wght@400;700&display=swap">
 <style>
 /* Layout: two panes on desktop (form left, live A4 preview right), single column on phones. */
 :root{
@@ -88,45 +88,58 @@ details.more summary{cursor:pointer;color:var(--accent);font-size:.9rem}
 .small{font-size:.8rem;color:var(--muted)}
 footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));color:var(--muted);font-size:.8rem}
 
-/* ===== A4 sheets: always paper-white, independent of theme ===== */
+/* ===== A4 sheets: always paper-white, independent of theme =====
+   Fonts mirror the Word templates: 標楷體 for CJK, Times New Roman for Latin (Word's Normal style),
+   新細明體 where the template leaves the East-Asian font at default, Arial navy for English labels.
+   1pt = 1.3333px at 96dpi, so sizes below are the Word point sizes. */
+.sheet{--kai:"Times New Roman","Tinos","Liberation Serif","DFKai-SB","標楷體","BiauKai","Kaiti TC","TW-Kai","LXGW WenKai TC","STKaiti",serif;
+  --ming:"Times New Roman","Tinos","Liberation Serif","PMingLiU","新細明體","Noto Serif TC","Noto Serif CJK TC",serif;
+  --arial:Arial,"Liberation Sans","Arimo",Helvetica,sans-serif; --navy:#000080;
+  width:794px;height:1123px;background:#fff;color:#000;font-family:var(--kai);font-size:11pt;line-height:1.4;padding:38px 46px;position:relative;overflow:hidden}
 #printroot{position:fixed;left:-20000px;top:0;pointer-events:none}
-.sheet{width:794px;height:1123px;background:#fff;color:#000;font-family:var(--form);font-size:14px;line-height:1.45;padding:38px 46px;position:relative;overflow:hidden}
 .sheet *{box-sizing:border-box}
 .sheet table{border-collapse:collapse;width:100%;table-layout:fixed}
 .sheet td,.sheet th{border:1px solid #000;padding:3px 6px;vertical-align:middle;font-weight:400}
 .sheet .c{text-align:center}
-.sheet .g{color:#9a9a9a}
-.sheet .fill{color:#0b2a8f;font-family:"Noto Sans TC","Noto Sans CJK TC",sans-serif;font-weight:500}
-.sheet .sm{font-size:11.5px;line-height:1.3}
-.sheet .xs{font-size:10.5px;line-height:1.35}
-.cb{display:inline-block;width:13px;height:13px;border:1.2px solid #000;vertical-align:-1px;margin-right:2px;position:relative;background:#fff}
-.cb.on::after{content:"";position:absolute;left:3.5px;top:-1px;width:4px;height:9px;border:solid #0b2a8f;border-width:0 2.2px 2.2px 0;transform:rotate(45deg)}
+.sheet .g{color:#a6a6a6}
+.sheet .fill{color:#000;font-family:var(--kai);font-weight:400}
+.sheet .sm{font-size:9pt;line-height:1.3}
+.sheet .xs{font-size:7pt;line-height:1.35}
+.cbx{font-family:var(--kai);margin-right:1px}
 .sheet .vtext{writing-mode:vertical-rl;text-align:center;letter-spacing:.3em;padding:4px 0}
 .sheet ol.sum{margin:4px 0 0;padding-left:22px}
 .sheet ol.sum li{margin:2px 0}
-.sheet .uline{display:inline-block;border-bottom:1px solid #000;min-width:60px;padding:0 4px;text-align:center}
-.sheet .notes{margin-top:6px;font-size:11.5px;line-height:1.55}
-/* generic receipt */
-.rcpt{border:1.5px solid #000;height:100%;padding:26px 30px;display:flex;flex-direction:column;gap:12px;font-size:14.5px;position:relative}
+.sheet .uline{display:inline-block;border-bottom:1px solid #000;min-width:60px;padding:0 4px;text-align:center;line-height:1.25}
+.sheet .notes{margin-top:6px;font-size:8pt;line-height:1.6}
+/* generic receipt (領據): margins 2cm L/R, 1.27cm top/bottom; frame around the body */
+.sheet.rc{padding:44px 64px}
+.rcpt{border:1.5px solid #000;height:100%;padding:18px 10px 12px;display:flex;flex-direction:column;position:relative;font-family:var(--kai);font-size:10pt}
+.rcpt .ln{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:0;min-height:37px;align-content:center}
+.rcpt .k10{font-family:var(--kai);font-size:10pt}
+.rcpt .k12{font-family:var(--kai);font-size:12pt}
+.rcpt .m12{font-family:var(--ming);font-size:12pt}
+.rcpt .en{font-family:var(--arial);color:var(--navy)}
+.rcpt .tnr{font-family:"Times New Roman","Tinos","Liberation Serif",serif}
+.rcpt .b{font-weight:700}
+.rcpt .u{text-decoration:underline;text-underline-offset:3px}
+.rcpt .t1{justify-content:center;font-size:18pt;letter-spacing:.55em;min-height:56px}
+.rcpt .t2{justify-content:center;font-size:14pt;min-height:52px;padding-right:200px}
 .rcpt .beside{padding-right:236px}
-.fbox{position:absolute;right:16px;width:222px;min-height:64px;border:1px solid #000;padding:6px 9px;font-size:13px;line-height:1.5;background:#fff;overflow-wrap:anywhere}
-.fbox .k{color:#000}
+.fbox{position:absolute;right:6px;width:226px;min-height:56px;border:1px solid #000;padding:6px 9px;font-family:var(--kai);font-size:10pt;line-height:1.45;background:#fff;overflow-wrap:anywhere}
 .fspacer{height:0;flex:none}
 .fit1{display:inline-block;white-space:nowrap;overflow:hidden;vertical-align:bottom;max-width:100%}
-.rcpt h3{text-align:center;font-size:24px;letter-spacing:.6em;margin:6px 0 0;font-weight:600;text-decoration:underline;text-underline-offset:6px}
-.rcpt h4{text-align:left;padding-left:200px;font-size:19px;letter-spacing:.3em;margin:4px 0 8px;font-weight:600}
-.rcpt .ln{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px}
-.rcpt .en{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a2b80}
-.rcpt .b{font-weight:700}
-.zip{display:inline-flex;gap:2px;vertical-align:middle}
-.zip i{display:inline-block;width:17px;height:19px;border:1px solid #000;font-style:normal;text-align:center;line-height:17px;font-size:13px}
-/* remit consent */
-.remit{font-size:16px;line-height:2.05;padding:10px 6px}
-.remit h3{text-align:center;font-size:21px;margin:0 0 10px;font-weight:600;letter-spacing:.08em}
-.remit p{margin:0}
-.remit .ind{padding-left:2.2em}
-.remit table td{height:34px;font-size:15px}
+.rcpt .rnotes{font-family:var(--ming);font-size:9pt;line-height:1.55;margin-top:auto}
+.zip{display:inline-flex;gap:1px;vertical-align:-2px}
+.zip i{display:inline-block;width:15px;height:16px;border:1px solid #000;font-style:normal;text-align:center;line-height:14px;font-size:10pt;font-family:var(--kai)}
+/* remit consent (匯款同意書): margins 3.17cm L/R, 標楷體 13pt, title 18pt */
+.sheet.rm{padding:56px 110px 20px}
+.remit{font-family:var(--kai);font-size:13pt;line-height:1.85}
+.remit h3{text-align:center;font-size:18pt;margin:0 0 22px;font-weight:400}
+.remit p{margin:0 0 6px}
+.remit .ind{padding-left:2em}
+.remit table td{height:34px;font-size:13pt}
 .remit .line{display:flex;gap:6px;align-items:baseline}
+.remit .line{margin-top:10px}
 .remit .line .v{flex:1;border-bottom:1px solid #000;min-height:28px;padding:0 6px}
 /* copies */
 .copies{display:flex;flex-direction:column;gap:18px;height:100%}
@@ -197,7 +210,7 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
           <label class="f"><span>單據上的日期</span>
             <select id="ev_dateMode"><option value="event">填入演講日期</option><option value="blank">留白（簽名時手寫）</option></select></label>
           <label class="f"><span>演講費單據「費別」勾選</span>
-            <select id="ev_feeKind"><option value="">依範本（教發勾演講費、通用勾鐘點費）</option><option>演講費</option><option>鐘點費</option></select></label>
+            <select id="ev_feeKind"><option>演講費</option><option>鐘點費</option></select></label>
           <label class="f full gen-only"><span>領據右上框「演講題目」文字（空白時自動用主題＋日期時間）</span><textarea id="ev_boxLec" rows="2"></textarea></label>
           <label class="f gen-only"><span>所得稅／二代健保</span>
             <select id="ev_tax"><option value="blank">留白，由承辦人填</option><option value="auto">依 9B 試算（單次 >2 萬扣 10%、≥2 萬扣 2.11%）</option></select></label>
@@ -381,7 +394,7 @@ function writePerson(p){
 /* ---------- helpers ---------- */
 function roc(iso){ if(!iso) return null; const [y,m,d]=iso.split("-").map(Number); if(!y) return null; return {y:y-1911,m,d,Y:y}; }
 function money(n){ n=Number(n); return Number.isFinite(n)&&n>0? n.toLocaleString("en-US"):""; }
-function cb(on){ return `<span class="cb${on?" on":""}"></span>`; }
+function cb(on){ return `<span class="cbx">${on?"■":"□"}</span>`; }
 function f(v){ return v? `<span class="fill">${esc(v)}</span>`:""; }
 function idValid(id){
   if(!/^[A-Z][1289ABCD]\d{8}$/.test(id)) return false;
@@ -459,11 +472,11 @@ function tfLecture(e,p,C){
    <tr style="height:150px"><td class="c">付款方式</td><td style="font-size:13px">${cb(true)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
      <div style="margin-top:6px">${cb(false)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px"></span><br>員編：<span class="uline" style="min-width:110px"></span></div></td></tr>
    <tr style="height:56px"><td class="c">經手人<div class="xs">(聯絡方式)</div></td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
-   ${C.bilingual?`<tr><td colspan="2" class="sm" style="padding:5px 6px"><b>若本計畫執行內容與雙語計畫相關，請依課程／活動實際內容擇一或複選下列項目：</b><br>${cb(false)}國際、跨文化及英語授課<br>${cb(false)}學術英文課程或專業英語課程<br>${cb(false)}其他：<span class="uline"></span></td></tr>`:""}
+   ${C.bilingual?`<tr><td colspan="2" style="padding:5px 6px;line-height:1.7"><b>若本計畫執行內容與雙語計畫相關，請依課程／活動實際內容擇一或複選下列項目：</b><br>${cb(false)}國際、跨文化及英語授課<br>${cb(false)}學術英文課程或專業英語課程<br>${cb(false)}其他：<span class="uline"></span></td></tr>`:""}
   </table>
-  <table style="margin-top:-1px"><tr style="height:34px"><td class="c" style="font-size:15px;font-weight:600">${rosterTitle}</td></tr></table>
+  <table style="margin-top:-1px"><tr style="height:34px"><td class="c" style="font-size:12pt">${rosterTitle}</td></tr></table>
   <table style="margin-top:-1px" class="c"><colgroup><col style="width:11%"><col></colgroup><tr style="height:32px"><td>費別</td><td style="text-align:left">${fees}</td></tr></table>
-  <table style="margin-top:-1px" class="c"><colgroup><col style="width:17%"><col style="width:14%"><col style="width:13%"><col style="width:14%"><col style="width:14%"><col></colgroup>
+  <table style="margin-top:-1px" class="c"><colgroup><col style="width:17%"><col style="width:14.5%"><col style="width:13%"><col style="width:16%"><col style="width:14.5%"><col></colgroup>
    <tr style="height:34px"><td>姓名</td><td>應領金額</td><td>所得稅</td><td>自提二代健保</td><td>實領金額</td><td>簽名或蓋章</td></tr>
    <tr style="height:56px"><td>${f(p.p_name)}</td><td>${amt?f(amt):""}</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td></td></tr>
    <tr style="height:40px"><td>身分證字號</td><td colspan="5" style="text-align:left">${f(p.p_id)}</td></tr>
@@ -494,7 +507,7 @@ function tfTravel(e,p,C){
    <tr style="height:44px"><td class="c">檢附單據</td><td>單據 <span class="uline" style="min-width:40px">${f(p.t_docs)}</span> 件</td></tr>
    <tr style="height:52px"><td class="c">經手人</td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
   </table>
-  <table style="margin-top:-1px"><tr style="height:32px"><td class="c" style="letter-spacing:1.2em;font-size:15px">領據<span style="letter-spacing:0">（校外人員）</span></td></tr></table>
+  <table style="margin-top:-1px"><tr style="height:32px"><td class="c" style="letter-spacing:1.2em;font-size:12pt">領據<span style="letter-spacing:0">（校外人員）</span></td></tr></table>
   <table style="margin-top:-1px" class="c"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:22%"><col style="width:17%"><col></colgroup>
    <tr style="height:34px"><td>費別</td><td>姓名</td><td>身分證字號</td><td>實領金額</td><td>簽名或蓋章</td></tr>
    <tr style="height:62px"><td>交通費</td><td>${f(p.p_name)}</td><td>${f(p.p_id)}</td><td>${amt?f(amt):""}</td><td></td></tr>
@@ -513,7 +526,7 @@ function genReceipt(e,p,kind){
     tax=t?money(t):"0"; nhi=h?money(h):"0"; taxOn=t>0; nhiOn=h>0; net=money(raw-t-h);
   }
   const zipBoxes=`<span class="zip">${Array.from({length:Math.max(5,(p.p_zip||"").length)},(_,i)=>`<i class="fill">${esc((p.p_zip||"")[i]||"")}</i>`).join("")}</span>`;
-  const lecKind=e.feeKind||"鐘點費";
+  const lecKind=e.feeKind||"演講費";
   const fee=k=>cb((isLec&&k===lecKind)||(!isLec&&k==="交通費"))+k;
   const title=p.p_title===undefined||p.p_title===""? "先生/小姐" : p.p_title;
   let box;
@@ -527,60 +540,60 @@ function genReceipt(e,p,kind){
     const route=p.t_from? `${p.t_from}－${e.dest||"國立清華大學"}（往返）` : "";
     box = `交通方式：${f(tools)}<br>起訖地點：${f(route)}`;
   }
-  return `<div class="sheet"><div class="rcpt">
-   <h3>國立清華大學</h3>
-   <h4>領　據 <span class="en" style="font-size:16px;letter-spacing:0">RECEIPT</span></h4>
+  const K=t=>`<span class="k10">${t}</span>`, M=t=>`<span class="m12">${t}</span>`, EN=(t,pt)=>`<span class="en" style="font-size:${pt}pt">${t}</span>`;
+  return `<div class="sheet rc"><div class="rcpt">
+   <div class="ln t1"><span class="u">國立清華大學</span></div>
+   <div class="ln t2"><span class="u">領　據&nbsp;</span><span class="en u">RECEIPT</span></div>
    <div class="fbox" data-fit="box">${box}</div>
-   <div class="ln beside"><span class="b">領 款 人</span><span class="en">Received By</span>：<span class="uline fit1" style="min-width:90px;max-width:150px">${f(p.p_name)}</span>${esc(title)}<span class="b">（請以正楷填寫）</span></div>
-   <div class="ln b beside" style="font-size:16px">所得格式代號【 ${f(code)||"&emsp;&emsp;&emsp;"} 】</div>
+   <div class="ln beside">${K("領 款 人")}${EN("Received By",10)}${K("：")}<span class="uline fit1 k10" style="min-width:80px;max-width:140px">${f(p.p_name)}</span>${K(esc(title)+"（<b>請以正楷填寫</b>）")}</div>
+   <div class="ln beside"><span class="k12 b">所得格式代號【&nbsp;${f(code)||"&emsp;&emsp;"}&nbsp;】</span></div>
    <div class="fspacer"></div>
-   <div class="ln fee1">費 用 別 <span class="en">Expense Type</span>：${["演講費","稿費","碩博士班論文指導費"].map(fee).join(" ")} ${cb(false)}</div>
-   <div class="ln" style="padding-left:118px">${["出席費","鐘點費","命題費","交通費","顧問費","獎勵金","工讀金"].map(fee).join(" ")}</div>
-   <div class="ln" style="padding-left:118px">${cb(false)}臨時工資 ${cb(false)}</div>
-   <div class="ln"><span class="b">應　　領</span><span class="en">Gross Paid</span>：NT$ <span class="uline" style="min-width:110px">${f(amt)}</span></div>
-   <div class="ln">所得稅額 <span class="en">Tax Withheld</span>：NT$ <span class="uline" style="min-width:80px">${f(tax)}</span> 稅率：<span class="uline" style="min-width:34px">${taxOn?f("10"):""}</span>％ ${cb(taxOn===true)}應稅 ${cb(taxOn===false)}免扣繳</div>
-   <div class="ln">自提二代健保 <span class="en">The 2nd Generation of NHI</span>：NT$ <span class="uline" style="min-width:70px">${f(nhi)}</span> 費率：<span class="uline">2.11</span>％ ${cb(nhiOn===true)}應提 ${cb(nhiOn===false)}免提</div>
-   <div class="ln"><span class="b">實　　領</span><span class="en">Net Paid</span>：NT$ <span class="uline" style="min-width:110px">${f(net)}</span></div>
-   <div class="ln">員工編號(學號)：<span class="uline"></span> 職稱：<span class="uline"></span> <span class="b">簽名或蓋章</span><span class="en">Signature/Seal</span>：</div>
-   <div class="ln" style="height:36px"></div>
-   <div class="ln b">二代健保補充保費公提(所得格式代號【50】應領金額*2.11％)：NT$</div>
-   <div class="ln">大陸人士 是${cb(false)} 否${cb(true)}　　外籍人士國籍 <span class="en">Nationality</span>：</div>
-   <div class="ln">【無員工編號及學號者請提供下列資料】</div>
-   <div class="ln"><span class="b">戶籍地址（外籍人士填現住地）</span><span class="en">Residence Address</span>：${zipBoxes}</div>
-   <div class="ln shrink" style="padding-left:20px">${f(p.p_addr)}</div>
-   <div class="ln"><span class="b">身份證字號或護照號碼</span><span class="en">ID No./ Passport No.</span>：${f(p.p_id)}</div>
-   <div class="ln">統一證號 <span class="en">ARC ID No.</span>：<span class="uline"></span>(外僑請填寫)</div>
-   <div class="ln">護照英文姓名 <span class="en">Full name</span>：<span class="uline"></span>(未入境者請填)</div>
-   <div class="ln"><span class="b">出生日</span> <span class="en">Day of Birth</span>：${dob?f(`民國 ${dob.y} 年 ${dob.m} 月 ${dob.d} 日`):""}</div>
-   <div class="ln" style="justify-content:center;margin-top:8px">日 期 <span class="en">Date</span>：中華民國 <span class="uline">${d?f(d.y):""}</span> 年 <span class="uline" style="min-width:40px">${d?f(d.m):""}</span> 月 <span class="uline" style="min-width:40px">${d?f(d.d):""}</span> 日</div>
-   <div class="notes rnotes" style="margin-top:auto">備註：<br>1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務、補充保費等問題將由各承辦單位負責處理。<br>5、本表應附於『領據專家系統』所製印領清冊後，辦理核銷。</div>
-   <div class="ln" style="gap:120px">製表：<span>計畫主持人/組長：</span></div>
+   <div class="ln fee1">${K("費 用 別 ")}${EN("Expense Type",8)}${K("："+["演講費","稿費","碩博士班論文指導費"].map(fee).join(" ")+" "+cb(false))}</div>
+   <div class="ln" style="padding-left:150px">${K(["出席費","鐘點費","命題費","交通費","顧問費","獎勵金","工讀金"].map(fee).join(" "))}</div>
+   <div class="ln" style="padding-left:150px">${K(cb(false)+"臨時工資 "+cb(false))}</div>
+   <div class="ln">${M("應　領 ")}${EN("Gross Paid",12)}<span class="m12">　　：NT$ </span><span class="uline m12" style="min-width:110px">${f(amt)}</span></div>
+   <div class="ln">${K("所得稅額 ")}${EN("Tax Withheld",10)}${K("　：NT$")}<span class="uline k10" style="min-width:70px">${f(tax)}</span>${K(" 稅率：")}<span class="uline k10" style="min-width:30px">${taxOn?f("10"):""}</span>${K("％ "+cb(taxOn===true)+"應稅 "+cb(taxOn===false)+"免扣繳")}</div>
+   <div class="ln">${K("自提二代健保")}<span class="en tnr" style="font-size:8pt">The 2nd Generation of NHI</span>${K("：NT$")}<span class="uline k10" style="min-width:70px">${f(nhi)}</span>${K(" 費率：")}<span class="uline k10" style="min-width:34px">2.11</span>${K("％ "+cb(nhiOn===true)+"應提 "+cb(nhiOn===false)+"免提")}</div>
+   <div class="ln">${K("實　領 ")}${EN("Net Paid",10)}${K("　　：NT$")}<span class="uline k10" style="min-width:110px">${f(net)}</span></div>
+   <div class="ln">${M("員工編號(學號)：")}<span class="uline" style="min-width:50px"></span>${M("職稱：")}<span class="uline" style="min-width:50px"></span>${M(" 簽名或蓋章")}${EN("Signature/Seal",12)}${M("：")}</div>
+   <div class="ln" style="min-height:30px"></div>
+   <div class="ln"><span class="m12 b">二代健保補充保費公提(所得格式代號【50】應領金額*2.11%)：NT$</span></div>
+   <div class="ln">${M("大陸人士 是"+cb(false)+" 否"+cb(true)+"　　外籍人士國籍 ")}${EN("Nationality",12)}${M("：")}</div>
+   <div class="ln">${M("【無員工編號及學號者請提供下列資料】")}</div>
+   <div class="ln shrink">${M("戶籍地址（外籍人士填現住地）")}${EN("Residence Address",9)}${M("：")}${zipBoxes}<span class="m12">&nbsp;${f(p.p_addr)}</span></div>
+   <div class="ln">${M("身份證字號或護照號碼")}${EN("ID No./ Passport No.",12)}${M("：")}<span class="m12">${f(p.p_id)}</span></div>
+   <div class="ln">${M("統一證號 ARC ")}${EN("ID No.",12)}${M("：")}<span class="uline" style="min-width:90px"></span>${M("(外僑請填寫)")}</div>
+   <div class="ln">${K("護照英文姓名 ")}<span class="k10" style="color:var(--navy)">Full name</span>${K(" ：")}<span class="uline" style="min-width:90px"></span>${K("(未入境者請填)")}</div>
+   <div class="ln">${K("出生日 ")}<span class="k10" style="color:var(--navy)">Day of Birth</span>${K(" ：")}${dob?K(f(`民國 ${dob.y} 年 ${dob.m} 月 ${dob.d} 日`)):""}</div>
+   <div class="ln" style="padding-left:80px">${K("日 期 ")}${EN("Date",10)}${K(" : 中華民國")}<span class="uline k10" style="min-width:70px">${d?f(d.y):""}</span>${K("年")}<span class="uline k10" style="min-width:60px">${d?f(d.m):""}</span>${K("月")}<span class="uline k10" style="min-width:60px">${d?f(d.d):""}</span>${K("日")}</div>
+   <div class="rnotes">備註：<br>&emsp;1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附<u>外僑居留證</u>或<u>護照</u>或<u>中華民國統一證號基資表</u>影本(三證擇一）。<br>&emsp;3、大陸人士應檢附<u>旅行證</u>與<u>入出境管理局通行證</u>影本（二證皆要）。<br>&emsp;4、以上資料請詳實填寫，如發生稅務、補充保費等問題將由各承辦單位負責處理。<br>&emsp;5、<span style="font-family:var(--kai)">本表應附於『領據專家系統』所製印領清冊後，辦理核銷。</span></div>
+   <div class="ln k12" style="min-height:34px">製表：<span style="display:inline-block;width:150px"></span>計畫主持人/組長：</div>
   </div></div>`;
 }
 function remitSheet(e,p){
   const d=e.dateMode==="blank"? null: roc(e.date);
-  return `<div class="sheet"><div class="remit">
+  return `<div class="sheet rm"><div class="remit">
   <h3>校外人士/廠商　匯款同意書</h3>
   <p>一、茲同意國立清華大學將現金電匯入本人(公司)所指定之後述金融機構</p><p class="ind">存款帳戶，作為本人（公司)收受帳款、貨款及其他款項之方式。</p>
   <p>二、帳戶資料：${cb(p.p_remitKind!=="change")}新申請　${cb(p.p_remitKind==="change")}變更名稱或帳號　${cb(false)}遺忘查詢帳務密碼</p>
   <p class="ind">存款戶名：${f(p.p_acctName||p.p_name)}</p>
   <div class="ind"><table class="c"><colgroup><col style="width:26%"><col style="width:26%"><col></colgroup>
    <tr><td>銀行</td><td>分 行</td><td>帳號(含檢查號碼)</td></tr>
-   <tr><td>${f(p.p_bank)}</td><td>${f(p.p_branch)}</td><td rowspan="2" style="font-size:17px;letter-spacing:.06em">${f(p.p_acct)}</td></tr>
+   <tr><td>${f(p.p_bank)}</td><td>${f(p.p_branch)}</td><td rowspan="2" style="letter-spacing:.06em">${f(p.p_acct)}</td></tr>
    <tr><td style="text-align:left">代號 ${f(p.p_bankCode)}</td><td style="text-align:left">代號 ${f(p.p_branchCode)}</td></tr></table></div>
-  <p class="c" style="font-weight:700;font-size:15px">（請影印銀行存摺正面一份附上）公司行號請勿用個人帳戶</p>
+  <p class="c" style="font-family:var(--ming)">（請影印銀行存摺正面一份附上）公司行號請勿用個人帳戶</p>
   <p>三、所有款項於國立清華大學匯入上述帳戶後，本人(公司)即承認業己收受</p><p class="ind">該筆款項，其後之風險及發生之問題，概由本人(公司)承擔。</p>
   <p>四、本人(公司)如帳號或銀行變更時，隨即將新資料通知貴校，以確保本人</p><p class="ind">(公司)之權益。(公司更名請附申請變更核准函或變更登記表影本)。</p>
   <p class="ind">此致</p><p>國立清華大學</p>
   <div class="line"><span>身份證字號(個人)/統一編號(公司)：</span><span class="v">${f(p.p_id)}</span></div>
-  <div class="line"><span>通 訊 地 址：</span><span class="v shrink" style="font-size:14.5px">${f(p.p_mail||p.p_addr)}</span></div>
+  <div class="line"><span>通 訊 地 址：</span><span class="v shrink">${f(p.p_mail||p.p_addr)}</span></div>
   <div class="line"><span>電　　　話：</span><span class="v">${f(p.p_phone)}</span></div>
-  <div class="line"><span>E-mail：</span><span class="v">${f(p.p_email)}</span><span style="font-size:13px">(匯款後將以 E-mail 通知)</span></div>
+  <div class="line"><span>E-mail：</span><span class="v">${f(p.p_email)}</span><span style="font-size:10pt">(匯款後將以 E-mail 通知)</span></div>
   <p style="margin-top:10px">簽名或蓋章（個人）/ 統一發票專用章、公司及負責人章（公司）：</p>
-  <div style="height:70px"></div>
+  <div style="height:60px"></div>
   <p class="c">中 華 民 國　${d?f(d.y):"&emsp;&emsp;"}　年　${d?f(d.m):"&emsp;"}　月　${d?f(d.d):"&emsp;"}　日</p>
-  <p class="c" style="font-size:13px">※簽名欄位都要正本不收電子簽章。</p>
-  <p style="text-align:right;font-size:12px">108.09.04 修訂</p>
+  <p class="c" style="font-size:10pt">※簽名欄位都要正本不收電子簽章。</p>
+  <p style="text-align:right;font-size:9pt">108.09.04 修訂</p>
   </div></div>`;
 }
 function copiesSheet(e,p,w){
@@ -605,7 +618,7 @@ function fitSheets(){
     // 1) floating box on the generic receipt
     const box=sheet.querySelector(".fbox");
     if(box){
-      const rc=sheet.querySelector(".rcpt"), h4=rc.querySelector("h4"), fee1=rc.querySelector(".fee1"), sp=rc.querySelector(".fspacer"), notes=rc.querySelector(".rnotes");
+      const rc=sheet.querySelector(".rcpt"), h4=rc.querySelector(".t2"), fee1=rc.querySelector(".fee1"), sp=rc.querySelector(".fspacer"), notes=rc.querySelector(".rnotes");
       box.style.top=(h4.offsetTop)+"px";
       const avail=()=>fee1.offsetTop-box.offsetTop-8;
       let fs=13;
