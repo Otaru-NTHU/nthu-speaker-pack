@@ -27,6 +27,7 @@
   --accent:#d6a3d8; --accent-ink:#2a0f2b; --accent-soft:#372339;
   --warn:#f0b65a; --warn-soft:#3a2d17; --bad:#f08d8f; --bad-soft:#3d1f20; --ok:#8fd19b; color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 html,body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:15px;line-height:1.6;border-top:6px solid var(--accent)}
@@ -85,6 +86,39 @@ button:disabled{opacity:.5;cursor:default}
 .pv-sheet{width:100%;aspect-ratio:210/297;position:relative;overflow:hidden;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);flex:none}
 .pv-sheet > .sheet{position:absolute;left:0;top:0;transform-origin:0 0}
 .pv-label{font-size:.8rem;color:var(--muted);margin-bottom:-8px}
+/* tabs above the preview: one sheet at a time, or 全部 for the stacked view */
+.pv-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:thin;border-bottom:1px solid var(--line);margin:0 -2px 10px;padding:0 2px;-webkit-overflow-scrolling:touch}
+.pv-tab{flex:none;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;background:transparent;color:var(--muted);padding:7px 12px;font-size:.88rem;position:relative;margin-bottom:-1px;white-space:nowrap}
+.pv-tab[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--line);font-weight:700}
+.pv-tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:2px}
+.pv-tab.all{margin-left:auto;color:var(--muted)}
+.preview.single .pv-label{display:none}
+.preview.single .pv-item[hidden]{display:none}
+.preview.single .pv-sheet{width:min(100%, calc((100vh - 300px) * 210 / 297));margin:0 auto;cursor:zoom-in}
+.pv-item{display:flex;flex-direction:column;gap:14px}
+.pv-nav{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:.85rem;color:var(--muted)}
+.pv-nav button{padding:4px 12px;font-size:.85rem}
+@media (max-width:980px){
+  .pv-tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);padding-top:6px}
+  .preview.single .pv-sheet{width:100%}
+}
+/* full-screen viewer for checking details (mainly on phones) */
+.zoom{position:fixed;inset:0;z-index:50;background:#140a16;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.zoom-bar{display:flex;gap:8px;align-items:center;padding:10px 12px;color:#fff;font-size:.9rem}
+.zoom-bar .ttl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zoom-bar button{background:#2a1d2d;color:#fff;border-color:#4a3550;padding:6px 12px}
+.zoom-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 12px 24px;touch-action:pan-x pan-y pinch-zoom}
+.zoom-page{background:#fff;margin:0 auto;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.5)}
+.zoom-page > .sheet{position:absolute;left:0;top:0;transform-origin:0 0}
+/* banner shown inside Instagram / Facebook / LINE built-in browsers */
+.iab{background:var(--accent);color:var(--accent-ink);padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.iab-in{max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.iab strong{font-size:1.02rem}
+.iab p{margin:0;font-size:.9rem;line-height:1.55}
+.iab .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.iab button{background:var(--accent-ink);color:var(--accent);border:none;font-weight:700;padding:8px 14px}
+.iab button.ghost{background:transparent;color:var(--accent-ink);border:1px solid currentColor;font-weight:400}
+.iab .url{font-family:var(--mono);font-size:.75rem;opacity:.85;overflow-wrap:anywhere}
 details.more summary{cursor:pointer;color:var(--accent);font-size:.9rem}
 .small{font-size:.8rem;color:var(--muted)}
 footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));color:var(--muted);font-size:.8rem}
@@ -163,6 +197,19 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
 </style>
 </head>
 <body>
+<div class="iab" id="iab" hidden>
+  <div class="iab-in">
+    <strong id="iabTitle">請改用 Safari 或 Chrome 開啟這個網頁</strong>
+    <p id="iabText">你現在是在 App 的內建瀏覽器裡，這裡<b>無法下載 PDF</b>。請先換到 Safari／Chrome 再開始填寫；在這裡填的資料，換過去之後不會跟著帶過去。</p>
+    <p id="iabHow"></p>
+    <div class="acts">
+      <button type="button" id="iabChrome" hidden>用 Chrome 開啟</button>
+      <button type="button" id="iabCopy">複製網址</button>
+      <button type="button" class="ghost" id="iabDismiss">先留在這裡看看</button>
+    </div>
+    <div class="url" id="iabUrl"></div>
+  </div>
+</div>
 <header class="top">
   <h1>清華講座單據包</h1>
   <p>講者填一次基本資料、上傳存摺與身分證，就能產出對應經費來源的領據、匯款同意書與加了浮水印的影本 PDF。所有資料都只在你的瀏覽器裡處理，不會上傳到任何伺服器。</p>
@@ -309,6 +356,7 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
     <ul class="msgs" id="msgs"></ul>
     <div class="actions" style="margin-top:12px">
       <button type="button" class="primary" id="btnPdf">下載單據包 PDF</button>
+      <button type="button" id="btnSharePdf" hidden>分享 PDF（傳到 LINE、Email 或存到檔案）</button>
       <button type="button" id="btnPrint">直接列印</button>
       <span class="status" id="pdfStatus"></span>
     </div>
@@ -332,7 +380,9 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
   <div class="sticky">
     <section class="card" style="padding:12px">
       <h2 style="margin-bottom:8px"><span class="step">預覽</span><span id="pvCount" class="small"></span></h2>
+      <div class="pv-tabs" id="pvTabs" role="tablist" aria-label="切換單據"></div>
       <div class="preview" id="preview"></div>
+      <div class="pv-nav" id="pvNav" hidden><button type="button" id="pvPrev">‹ 上一張</button><span id="pvPos"></span><button type="button" id="pvNext">下一張 ›</button></div>
     </section>
   </div>
 </div>
@@ -340,6 +390,10 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
 <footer class="note">表單版式依國立清華大學教學發展中心 115-1 核銷說明（跨域富學／教師創新教學 1150630、共學圈圈 1150714）、通用領據與「校外人士／廠商匯款同意書」(108.09.04 修訂) 重製。送件前請以承辦單位最新規定為準。</footer>
 
 <div id="printroot" aria-hidden="true"></div>
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-label="單據放大檢視">
+  <div class="zoom-bar"><span class="ttl" id="zoomTitle"></span><button type="button" id="zoomFit">適合寬度</button><button type="button" id="zoomFull">放大</button><button type="button" id="zoomClose">關閉</button></div>
+  <div class="zoom-body" id="zoomBody"></div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -349,6 +403,13 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const LS_KEY="nthu-speaker-pack-v1";
+
+/* ---------- App 內建瀏覽器 (Instagram / Facebook / LINE / WeChat …) ----------
+   These webviews cannot save blob: downloads; "share" sends the blob URL as text. Detect and send people out first. */
+const UA=navigator.userAgent||"";
+const IAB_APP=/Instagram/i.test(UA)?"Instagram":/FBAN|FBAV|FB_IAB|FBIOS/i.test(UA)?"Facebook":/Barcelona|Threads/i.test(UA)?"Threads":/\bLine\//i.test(UA)?"LINE":/MicroMessenger/i.test(UA)?"微信":/KAKAOTALK/i.test(UA)?"KakaoTalk":/TikTok|musical_ly|Bytedance/i.test(UA)?"TikTok":/Messenger/i.test(UA)?"Messenger":(/Android/i.test(UA)&&/; wv\)/.test(UA))?"App":"";
+const IAB=!!IAB_APP;
+const IS_ANDROID=/Android/i.test(UA), IS_IOS=/iPhone|iPad|iPod/i.test(UA)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 
 const BANKS=[["004","臺灣銀行"],["005","臺灣土地銀行"],["006","合作金庫商業銀行"],["007","第一商業銀行"],["008","華南商業銀行"],["009","彰化商業銀行"],["011","上海商業儲蓄銀行"],["012","台北富邦商業銀行"],["013","國泰世華商業銀行"],["016","高雄銀行"],["017","兆豐國際商業銀行"],["048","王道商業銀行"],["050","臺灣中小企業銀行"],["052","渣打國際商業銀行"],["053","台中商業銀行"],["054","京城商業銀行"],["081","匯豐(台灣)商業銀行"],["101","瑞興商業銀行"],["102","華泰商業銀行"],["103","臺灣新光商業銀行"],["108","陽信商業銀行"],["118","板信商業銀行"],["147","三信商業銀行"],["700","中華郵政"],["803","聯邦商業銀行"],["805","遠東國際商業銀行"],["806","元大商業銀行"],["807","永豐商業銀行"],["808","玉山商業銀行"],["809","凱基商業銀行"],["810","星展(台灣)商業銀行"],["812","台新國際商業銀行"],["816","安泰商業銀行"],["822","中國信託商業銀行"],["823","將來商業銀行"],["824","連線商業銀行"],["826","樂天國際商業銀行"]];
 $("#bankList").innerHTML=BANKS.map(([c,n])=>`<option value="${n}">${c}</option>`).join("");
@@ -612,9 +673,11 @@ const PAGE_BOTTOM=1123-30;
 function px(el){ return parseFloat(getComputedStyle(el).fontSize); }
 function fitOneLine(el,min){ let fs=px(el); while(el.scrollWidth>el.clientWidth+1 && fs>min){ fs-=0.5; el.style.fontSize=fs+"px"; } return el.scrollWidth<=el.clientWidth+1; }
 function contentBottom(sheet){ const top=sheet.getBoundingClientRect().top; let b=0; sheet.querySelectorAll(":scope > *").forEach(c=>{ b=Math.max(b,c.getBoundingClientRect().bottom-top, c.scrollHeight? c.getBoundingClientRect().top-top+c.scrollHeight:0); }); return b; }
+let fitFlags=[];
 function fitSheets(){
-  const warns=[];
-  $$("#printroot .sheet").forEach(sheet=>{
+  const warns=[]; fitFlags=[];
+  $$("#printroot .sheet").forEach((sheet,si)=>{
+    const before=warns.length;
     sheet.querySelectorAll(".fit1").forEach(el=>{ if(!fitOneLine(el,10)) warns.push("姓名過長，已縮到最小字級仍放不下。"); });
     // 1) floating box on the generic receipt
     const box=sheet.querySelector(".fbox");
@@ -645,6 +708,7 @@ function fitSheets(){
       }
       if(contentBottom(sheet)>PAGE_BOTTOM) warns.push("有欄位文字太長，單據超出一頁，請精簡課程名稱、主題或地址。");
     }
+    fitFlags[si]=warns.length>before;
   });
   return [...new Set(warns)];
 }
@@ -701,24 +765,26 @@ async function build(){
   const w={};
   for(const k of Object.keys(imgs)) w[k]=imgs[k]? await watermark(imgs[k],wmText):null;
   if(my!==building) return;
-  const pages=[];
+  const pages=[]; // [full title, html, tab name, kind]
   if(C.tf){
-    if(e.lec) pages.push(["支出憑證黏存單｜講座鐘點費",tfLecture(e,p,C)]);
-    if(e.tra) pages.push(["支出憑證黏存單｜交通費",tfTravel(e,p,C)]);
+    if(e.lec) pages.push(["支出憑證黏存單｜講座鐘點費",tfLecture(e,p,C),"講座鐘點費","form"]);
+    if(e.tra) pages.push(["支出憑證黏存單｜交通費",tfTravel(e,p,C),"交通費","form"]);
   }else{
-    if(e.lec) pages.push(["領據｜演講費",genReceipt(e,p,"lec")]);
-    if(e.tra) pages.push(["領據｜交通費",genReceipt(e,p,"tra")]);
+    if(e.lec) pages.push(["領據｜演講費",genReceipt(e,p,"lec"),"演講費領據","form"]);
+    if(e.tra) pages.push(["領據｜交通費",genReceipt(e,p,"tra"),"交通費領據","form"]);
   }
-  pages.push(["校外人士匯款同意書",remitSheet(e,p)]);
-  pages.push([e.needId==="0"?"存摺影本":"身分證及存摺影本（浮水印）",copiesSheet(e,p,w)]);
+  pages.push(["校外人士匯款同意書",remitSheet(e,p),"匯款同意書","remit"]);
+  pages.push([e.needId==="0"?"存摺影本":"身分證及存摺影本（浮水印）",copiesSheet(e,p,w),e.needId==="0"?"存摺影本":"證件影本","copies"]);
   $("#printroot").innerHTML=pages.map(x=>x[1]).join("");
   if(document.fonts&&document.fonts.ready) await document.fonts.ready;
   if(my!==building) return;
   const fitWarn=fitSheets();
   const done=$$("#printroot .sheet").map(x=>x.outerHTML);
-  const pv=$("#preview"); pv.innerHTML=pages.map(([t],i)=>`<div class="pv-label">${esc(t)}</div><div class="pv-sheet">${done[i]}</div>`).join("");
-  scalePreview();
+  const pv=$("#preview"); pv.innerHTML=pages.map(([t],i)=>`<div class="pv-item" data-i="${i}"><div class="pv-label">${esc(t)}</div><div class="pv-sheet" data-i="${i}" title="點一下放大檢視">${done[i]}</div></div>`).join("");
+  pvPages=pages.map(([t,,tab,kind],i)=>({title:t,tab,kind,flag:fitFlags[i]||sheetNeedsLook(kind,e,p)}));
+  renderTabs();
   $("#pvCount").textContent=`共 ${pages.length} 頁`;
+  lastPdf=null;
   const ms=checks(e,p); fitWarn.forEach(w=>ms.unshift(["warn",w]));
   $("#msgs").innerHTML=ms.map(([k,t])=>`<li class="${k}">${esc(t)}</li>`).join("");
   ["passbook","idFront","idBack"].forEach(k=>{
@@ -727,7 +793,73 @@ async function build(){
   });
   saveLocal();
 }
-function scalePreview(){ $$(".pv-sheet").forEach(b=>{ const s=b.clientWidth/794; b.firstElementChild.style.transform=`scale(${s})`; }); }
+function scalePreview(){ $$(".pv-sheet").forEach(b=>{ if(!b.clientWidth) return; const s=b.clientWidth/794; b.firstElementChild.style.transform=`scale(${s})`; }); }
+
+/* ---------- preview tabs ---------- */
+const TAB_KEY="nthu-speaker-pack-tab";
+let pvPages=[], pvTab=null; // pvTab: index number, or "all"
+try{ const v=localStorage.getItem(TAB_KEY); if(v==="all") pvTab="all"; }catch(_){}
+function sheetNeedsLook(kind,e,p){
+  if(kind==="copies") return !imgs.passbook || (e.needId!=="0" && (!imgs.idFront||!imgs.idBack));
+  if(kind==="remit") return !p.p_acct || !p.p_bankCode || !p.p_bank;
+  return !p.p_name || !p.p_id || !p.p_addr;
+}
+function renderTabs(){
+  const n=pvPages.length;
+  if(pvTab!=="all" && (pvTab==null || pvTab>=n)) pvTab=0;
+  const btn=(key,label,flag,extra="")=>`<button type="button" role="tab" class="pv-tab ${extra}" data-tab="${key}" aria-selected="${String(pvTab)===String(key)}" tabindex="${String(pvTab)===String(key)?0:-1}">${esc(label)}${flag?'<span class="dot" title="這張還有欄位要確認"></span>':""}</button>`;
+  $("#pvTabs").innerHTML=pvPages.map((pg,i)=>btn(i,pg.tab,pg.flag)).join("")+btn("all","全部",false,"all");
+  applyTab();
+}
+function applyTab(){
+  const single=pvTab!=="all", pv=$("#preview");
+  pv.classList.toggle("single",single);
+  $$("#preview .pv-item").forEach(it=>it.hidden= single && Number(it.dataset.i)!==pvTab);
+  $$("#pvTabs .pv-tab").forEach(b=>{ const on=String(b.dataset.tab)===String(pvTab); b.setAttribute("aria-selected",on); b.tabIndex=on?0:-1; });
+  $("#pvNav").hidden=!single;
+  if(single){ $("#pvPos").textContent=`${pvTab+1} / ${pvPages.length}`; $("#pvPrev").disabled=pvTab===0; $("#pvNext").disabled=pvTab===pvPages.length-1; }
+  scalePreview();
+}
+function setTab(t,focus){
+  pvTab=t; try{ localStorage.setItem(TAB_KEY,t==="all"?"all":"one"); }catch(_){}
+  applyTab();
+  const b=$(`#pvTabs .pv-tab[data-tab="${t}"]`);
+  if(b){ b.scrollIntoView({block:"nearest",inline:"nearest"}); if(focus) b.focus(); }
+}
+$("#pvTabs").addEventListener("click",ev=>{ const b=ev.target.closest(".pv-tab"); if(!b) return; const k=b.dataset.tab; setTab(k==="all"?"all":Number(k)); });
+$("#pvTabs").addEventListener("keydown",ev=>{
+  const keys=[...pvPages.keys(),"all"], cur=keys.indexOf(pvTab); let nx=null;
+  if(ev.key==="ArrowRight") nx=keys[(cur+1)%keys.length];
+  if(ev.key==="ArrowLeft") nx=keys[(cur-1+keys.length)%keys.length];
+  if(ev.key==="Home") nx=keys[0]; if(ev.key==="End") nx=keys[keys.length-1];
+  if(nx!==null){ ev.preventDefault(); setTab(nx,true); }
+});
+$("#pvPrev").onclick=()=>{ if(pvTab>0) setTab(pvTab-1); };
+$("#pvNext").onclick=()=>{ if(pvTab<pvPages.length-1) setTab(pvTab+1); };
+// swipe left/right on the preview to change sheet (phones)
+(()=>{ let x0=null,y0=null; const pv=$("#preview");
+  pv.addEventListener("touchstart",e=>{ if(e.touches.length!==1){x0=null;return;} x0=e.touches[0].clientX; y0=e.touches[0].clientY; },{passive:true});
+  pv.addEventListener("touchend",e=>{ if(x0==null||pvTab==="all") return; const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0; x0=null;
+    if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){ if(dx<0&&pvTab<pvPages.length-1) setTab(pvTab+1); if(dx>0&&pvTab>0) setTab(pvTab-1); } },{passive:true});
+})();
+// full-screen viewer
+let zoomIdx=0, zoomMode="fit";
+function openZoom(i){ zoomIdx=i; zoomMode="fit"; $("#zoom").hidden=false; document.body.style.overflow="hidden"; drawZoom(); $("#zoomClose").focus(); }
+function drawZoom(){
+  const src=$(`#printroot .sheet:nth-child(${zoomIdx+1})`); if(!src) return;
+  const body=$("#zoomBody"), avail=body.clientWidth-24, w=zoomMode==="fit"? Math.min(avail,794) : Math.max(794,avail*1.6), s=w/794;
+  body.innerHTML=`<div class="zoom-page" style="width:${w}px;height:${Math.round(1123*s)}px">${src.outerHTML}</div>`;
+  body.querySelector(".sheet").style.transform=`scale(${s})`;
+  $("#zoomTitle").textContent=pvPages[zoomIdx]? pvPages[zoomIdx].title : "";
+  $("#zoomFit").disabled=zoomMode==="fit"; $("#zoomFull").disabled=zoomMode!=="fit";
+}
+function closeZoom(){ $("#zoom").hidden=true; document.body.style.overflow=""; $("#zoomBody").innerHTML=""; }
+$("#preview").addEventListener("click",ev=>{ const sh=ev.target.closest(".pv-sheet"); if(sh) openZoom(Number(sh.dataset.i)); });
+$("#zoomClose").onclick=closeZoom;
+$("#zoomFit").onclick=()=>{ zoomMode="fit"; drawZoom(); };
+$("#zoomFull").onclick=()=>{ zoomMode="full"; drawZoom(); };
+document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && !$("#zoom").hidden) closeZoom(); });
+window.addEventListener("resize",()=>{ if(!$("#zoom").hidden) drawZoom(); });
 let t=null; function schedule(){ clearTimeout(t); t=setTimeout(build,180); }
 window.addEventListener("resize",scalePreview);
 
@@ -757,7 +889,9 @@ $("#fileIn").addEventListener("change",async ev=>{
 });
 
 $("#btnShare").onclick=async()=>{
-  const e=readEvent(); const url=location.href.split("#")[0]+"#e="+b64e(e);
+  const e=readEvent(); const base=new URL(location.href); base.hash=""; base.search="";
+  base.searchParams.set("openExternalBrowser","1"); // LINE opens this in the phone's real browser
+  const url=base.toString()+"#e="+b64e(e);
   $("#shareOut").value=url;
   try{ await navigator.clipboard.writeText(url); $("#shareMsg").textContent="已複製連結。把它傳給講者即可，連結不含任何講者個資。"; }
   catch(_){ $("#shareOut").select(); $("#shareMsg").textContent="請手動複製上面的連結傳給講者。"; }
@@ -765,22 +899,49 @@ $("#btnShare").onclick=async()=>{
 
 function setStatus(s){ $("#pdfStatus").textContent=s; }
 $("#btnPrint").onclick=async()=>{ await build(); window.print(); };
+if(typeof IAB!=="undefined" && IAB) $("#btnPrint").hidden=true;
+let lastPdf=null; // {file,name}: reused by the share button so a second tap shares instantly
+async function makePdf(){
+  if(lastPdf) return lastPdf;
+  if(!window.html2canvas||!window.jspdf) throw new Error("nolib");
+  await build(); if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+  const sheets=$$("#printroot .sheet"); const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",compress:true});
+  for(let i=0;i<sheets.length;i++){
+    setStatus(`產生第 ${i+1}/${sheets.length} 頁…`);
+    const c=await html2canvas(sheets[i],{scale:2,backgroundColor:"#ffffff",logging:false,windowWidth:900});
+    if(i) pdf.addPage();
+    pdf.addImage(c.toDataURL("image/jpeg",0.9),"JPEG",0,0,210,297,undefined,"FAST");
+  }
+  const e=readEvent(), p=readPerson();
+  const name=`${(e.date||"").replace(/-/g,"")}_${p.p_name||"講者"}_講座單據包.pdf`;
+  const blob=pdf.output("blob");
+  lastPdf={blob,name,file:new File([blob],name,{type:"application/pdf"})};
+  return lastPdf;
+}
+function pdfError(err){
+  console.error(err);
+  setStatus(err&&err.message==="nolib"? "PDF 元件沒有載入，請確認網路後重新整理，或改用「直接列印」另存 PDF。" : "產生 PDF 時出錯，可改用「直接列印」另存 PDF。");
+}
 $("#btnPdf").onclick=async()=>{
-  if(!window.html2canvas||!window.jspdf){ setStatus("PDF 元件沒有載入，請確認網路後重新整理，或改用「直接列印」另存 PDF。"); return; }
+  if(IAB){ showIab(true); setStatus("這個 App 的內建瀏覽器不能下載檔案，請依最上方的說明改用 Safari／Chrome 開啟。"); return; }
   const btn=$("#btnPdf"); btn.disabled=true;
+  try{ const r=await makePdf(); download(r.blob,r.name); setStatus(`已下載 ${r.name}`); }
+  catch(err){ pdfError(err); }
+  finally{ btn.disabled=false; }
+};
+const CAN_SHARE_FILES=(()=>{ try{ return !!(navigator.canShare && navigator.canShare({files:[new File(["x"],"t.pdf",{type:"application/pdf"})]})); }catch(_){ return false; } })();
+if(CAN_SHARE_FILES && !IAB) $("#btnSharePdf").hidden=false;
+$("#btnSharePdf").onclick=async()=>{
+  const btn=$("#btnSharePdf"); btn.disabled=true;
   try{
-    await build(); if(document.fonts&&document.fonts.ready) await document.fonts.ready;
-    const sheets=$$("#printroot .sheet"); const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",compress:true});
-    for(let i=0;i<sheets.length;i++){
-      setStatus(`產生第 ${i+1}/${sheets.length} 頁…`);
-      const c=await html2canvas(sheets[i],{scale:2,backgroundColor:"#ffffff",logging:false,windowWidth:900});
-      if(i) pdf.addPage();
-      pdf.addImage(c.toDataURL("image/jpeg",0.9),"JPEG",0,0,210,297,undefined,"FAST");
+    const ready=!!lastPdf, r=await makePdf();
+    try{ await navigator.share({files:[r.file],title:r.name}); setStatus("已開啟分享選單。"); }
+    catch(err){
+      if(err&&err.name==="AbortError"){ setStatus(""); }
+      else if(!ready){ setStatus("PDF 已準備好，請再按一次「分享 PDF」。"); } // the tap expired while the PDF was being made
+      else{ setStatus("這個瀏覽器不讓網頁分享檔案，請改按「下載單據包 PDF」。"); }
     }
-    const e=readEvent(), p=readPerson();
-    const name=`${(e.date||"").replace(/-/g,"")}_${p.p_name||"講者"}_講座單據包.pdf`;
-    pdf.save(name); setStatus(`已下載 ${name}`);
-  }catch(err){ console.error(err); setStatus("產生 PDF 時出錯，可改用「直接列印」另存 PDF。"); }
+  }catch(err){ pdfError(err); }
   finally{ btn.disabled=false; }
 };
 
@@ -807,6 +968,33 @@ $("#importIn").addEventListener("change",async ev=>{
   catch(_){ setStatus("這不是本工具的資料檔。"); }
 });
 
+/* ---------- App 內建瀏覽器提示 ---------- */
+function cleanUrl(){ const u=new URL(location.href); u.searchParams.delete("openExternalBrowser"); return u.toString(); }
+function showIab(scroll){
+  if(!IAB) return;
+  const el=$("#iab"); el.hidden=false;
+  const app=IAB_APP==="App"?"這個 App":IAB_APP;
+  $("#iabTitle").textContent=`請改用 ${IS_IOS?"Safari":"Chrome"} 開啟這個網頁`;
+  $("#iabText").innerHTML=`你現在是在 <b>${esc(app)}</b> 的內建瀏覽器裡，這裡<b>無法下載 PDF</b>。請先換到 ${IS_IOS?"Safari":"Chrome 或其他瀏覽器"} 再開始填寫；在這裡填的資料，換過去之後不會跟著帶過去。`;
+  const how={Instagram:"點右上角「⋯」，選「在外部瀏覽器開啟」。",Facebook:"點右上角「⋯」，選「在外部瀏覽器開啟」或「以瀏覽器開啟」。",Threads:"點右上角「⋯」，選「在瀏覽器開啟」。",Messenger:"點右上角「⋯」，選「在外部瀏覽器開啟」。",LINE:"點右上角或右下角的「⋯」，選「使用預設瀏覽器開啟」。",微信:"點右上角「⋯」，選「在瀏覽器開啟」。"}[IAB_APP]||"點畫面上的「⋯」選單，選「在瀏覽器開啟」；找不到的話，按「複製網址」後貼到瀏覽器。";
+  $("#iabHow").innerHTML=`<b>怎麼換：</b>${esc(how)}`;
+  $("#iabUrl").textContent=cleanUrl();
+  $("#iabChrome").hidden=!IS_ANDROID;
+  if(scroll) window.scrollTo({top:0,behavior:"smooth"});
+}
+$("#iabCopy").onclick=async()=>{
+  const url=cleanUrl();
+  try{ await navigator.clipboard.writeText(url); $("#iabCopy").textContent="已複製，請貼到瀏覽器"; }
+  catch(_){ const r=document.createRange(); r.selectNodeContents($("#iabUrl")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#iabCopy").textContent="網址已選取，請長按複製"; }
+};
+$("#iabChrome").onclick=()=>{
+  // Chrome intent: the #hash cannot ride inside an intent URL, so the event settings travel as ?e= instead
+  const u=new URL(cleanUrl()); const h=u.hash.match(/[#&]e=([A-Za-z0-9_-]+)/); if(h){ u.searchParams.set("e",h[1]); u.hash=""; }
+  location.href=`intent://${u.host}${u.pathname}${u.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(u.toString())};end`;
+};
+$("#iabDismiss").onclick=()=>{ $("#iab").hidden=true; };
+showIab(false);
+
 /* ---------- boot ---------- */
 function lockEvent(e){
   const C=CAT[e.cat], ev=roc(e.date);
@@ -821,7 +1009,7 @@ function lockEvent(e){
   if(e.traAmt && !$("#t_amt").value) $("#t_amt").value=e.traAmt;
 }
 loadLocal();
-const m=location.hash.match(/[#&]e=([A-Za-z0-9_-]+)/);
+const m=location.hash.match(/[#&]e=([A-Za-z0-9_-]+)/) || location.search.match(/[?&]e=([A-Za-z0-9_-]+)/);
 if(m){ try{ const e=b64d(m[1]); writeEvent(e); if(e.header) $("#ev_header").dataset.touched="1"; fromLink=true; lockEvent(e);}catch(_){ } }
 if(!fromLink && !$("#ev_date").value){ /* sample so the first view shows a filled sheet */ }
 build();
