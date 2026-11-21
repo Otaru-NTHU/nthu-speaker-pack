@@ -251,6 +251,16 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
         <label class="f tra-only"><span>交通費金額（NT$，可留給講者填）</span><input type="number" id="ev_traAmt" min="0" step="1"></label>
         <label class="f tra-only"><span>交通迄點</span><input type="text" id="ev_dest" value="國立清華大學"></label>
         <label class="f tra-only"><span>活動名稱（交通費單）</span><input type="text" id="ev_act" placeholder="空白時沿用演講主題"></label>
+        <div class="full tf-only">
+          <div class="small" style="margin-bottom:4px">付款方式 <span style="color:var(--bad)">*</span>（擇一）</div>
+          <div class="seg" id="paySeg">
+            <label><input type="radio" name="pay" value="speaker" checked>匯款給講者</label>
+            <label><input type="radio" name="pay" value="advance">匯款給代墊人</label>
+          </div>
+        </div>
+        <label class="f tf-only pay-adv"><span class="req">代墊人姓名</span><input type="text" id="ev_advName"></label>
+        <label class="f tf-only pay-adv"><span class="req">代墊人員編</span><input type="text" id="ev_advId"></label>
+        <p class="small full tf-only pay-adv" style="margin:0">選代墊時，講者不需要填匯款帳戶、也不用附匯款同意書與存摺影本；費用核銷後撥還到代墊人在校務系統登錄的帳戶。</p>
       </div>
       <details class="more" style="margin-top:10px">
         <summary>進階設定</summary>
@@ -294,7 +304,7 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
   </section>
 
   <!-- ③ 帳戶 -->
-  <section class="card">
+  <section class="card" id="sec-account">
     <h2><span class="step">03</span>匯款帳戶</h2>
     <p class="hint">需與存摺影本一致，且必須是本人帳戶。郵局的分行代號請填局號。</p>
     <div class="grid">
@@ -335,7 +345,7 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
   </section>
 
   <!-- ⑤ 影像 -->
-  <section class="card">
+  <section class="card" id="sec-images">
     <h2><span class="step">05</span>存摺與身分證影像</h2>
     <p class="hint">手機拍照或掃描都可以。存摺請拍有戶名與帳號的那一頁。浮水印會蓋在影像上，原圖不會離開這台裝置。</p>
     <div class="uploads">
@@ -428,17 +438,18 @@ const CAT={
 const imgs={passbook:null,idFront:null,idBack:null}; // dataURL (downscaled, unwatermarked)
 let fromLink=false, pickTarget=null;
 
-const EV_IDS=["ev_f1","ev_f2","ev_convener","ev_unit","ev_topic","ev_date","ev_time","ev_place","ev_lecAmt","ev_traAmt","ev_dest","ev_act","ev_dateMode","ev_feeKind","ev_tax","ev_needId","ev_header","ev_boxLec"];
+const EV_IDS=["ev_f1","ev_f2","ev_convener","ev_unit","ev_topic","ev_date","ev_time","ev_place","ev_lecAmt","ev_traAmt","ev_dest","ev_act","ev_dateMode","ev_feeKind","ev_tax","ev_needId","ev_header","ev_boxLec","ev_advName","ev_advId"];
 const P_IDS=["p_name","p_title","p_job","p_id","p_dob","p_zip","p_addr","p_mail","p_phone","p_email","p_bank","p_bankCode","p_branch","p_branchCode","p_acct","p_acctName","p_remitKind","t_from","t_fromType","t_other","t_amt","t_docs"];
 
 function readEvent(){
-  const e={cat:($('input[name=cat]:checked')||{}).value||"tf-innov",lec:$("#itLecture").checked,tra:$("#itTravel").checked};
+  const e={cat:($('input[name=cat]:checked')||{}).value||"tf-innov",lec:$("#itLecture").checked,tra:$("#itTravel").checked,pay:($('input[name=pay]:checked')||{}).value||"speaker"};
   EV_IDS.forEach(id=>e[id.slice(3)]=$("#"+id).value.trim());
   if(Object.values(CAT).some(c=>c.header===e.header)) e.header="";
   return e;
 }
 function writeEvent(e){
   const r=$(`input[name=cat][value="${e.cat}"]`); if(r) r.checked=true;
+  const pr=$(`input[name=pay][value="${e.pay||"speaker"}"]`); if(pr) pr.checked=true;
   $("#itLecture").checked=e.lec!==false; $("#itTravel").checked=e.tra!==false;
   EV_IDS.forEach(id=>{const k=id.slice(3); if(e[k]!==undefined) $("#"+id).value=e[k];});
 }
@@ -531,8 +542,7 @@ function tfLecture(e,p,C){
      <td rowspan="${C.bilingual?4:3}" class="vtext">用途摘要</td>
      <td rowspan="${C.bilingual?4:3}" style="vertical-align:top;padding:6px 8px">${C_header(e,C)}【講座鐘點費】
        <ol class="sum shrink">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}</ol></td></tr>
-   <tr style="height:150px"><td class="c">付款方式</td><td style="font-size:13px">${cb(true)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
-     <div style="margin-top:6px">${cb(false)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px"></span><br>員編：<span class="uline" style="min-width:110px"></span></div></td></tr>
+   <tr style="height:150px"><td class="c">付款方式</td>${payCell(e)}</tr>
    <tr style="height:56px"><td class="c">經手人<div class="xs">(聯絡方式)</div></td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
    ${C.bilingual?`<tr><td colspan="2" style="padding:5px 6px;line-height:1.7"><b>若本計畫執行內容與雙語計畫相關，請依課程／活動實際內容擇一或複選下列項目：</b><br>${cb(false)}國際、跨文化及英語授課<br>${cb(false)}學術英文課程或專業英語課程<br>${cb(false)}其他：<span class="uline"></span></td></tr>`:""}
   </table>
@@ -547,6 +557,12 @@ function tfLecture(e,p,C){
   </table>
   <div class="notes">備註：1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務問題將由各承辦單位負責處理。<br>★5、非本國人士，需提供出入境證明(護照影本)在本國滿 183 天，未提供者方需事先扣除所得稅額 18%。<br><b><u>※簽名欄位都要正本不收電子簽章。</u></b></div>
   </div>`;
+}
+function isAdv(e){ return CAT[e.cat].tf && e.pay==="advance"; }
+function payCell(e){
+  const adv=isAdv(e);
+  return `<td style="font-size:13px">${cb(!adv)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
+     <div style="margin-top:6px">${cb(adv)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px">${adv?f(e.advName):""}</span><br>員編：<span class="uline" style="min-width:110px">${adv?f(e.advId):""}</span></div></td>`;
 }
 function C_header(e,C){ return esc(e.header||C.header); }
 function tfTravel(e,p,C){
@@ -564,8 +580,7 @@ function tfTravel(e,p,C){
       <ol class="sum shrink">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}
        <li>交通費起訖地點：( ${f(p.t_from)||"&emsp;&emsp;&emsp;"} ) － ( ${f(e.dest)||"&emsp;&emsp;&emsp;"} )<br>${typeOpts}</li>
        <li>搭乘工具：${tools}</li></ol></td></tr>
-   <tr style="height:150px"><td class="c">付款方式</td><td style="font-size:13px">${cb(true)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
-     <div style="margin-top:6px">${cb(false)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px"></span><br>員編：<span class="uline" style="min-width:110px"></span></div></td></tr>
+   <tr style="height:150px"><td class="c">付款方式</td>${payCell(e)}</tr>
    <tr style="height:44px"><td class="c">檢附單據</td><td>單據 <span class="uline" style="min-width:40px">${f(p.t_docs)}</span> 件</td></tr>
    <tr style="height:52px"><td class="c">經手人</td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
   </table>
@@ -725,6 +740,9 @@ function applyVisibility(e){
   $$(".tf-proj").forEach(x=>x.hidden=!C.tf);
   $$(".lec-only").forEach(x=>x.hidden=!e.lec); $$(".tra-only").forEach(x=>x.hidden=!e.tra);
   $$(".id-only").forEach(x=>x.hidden=e.needId==="0");
+  const adv=isAdv(e);
+  $$(".pay-adv").forEach(x=>x.hidden=!adv);
+  $("#sec-account").hidden=adv; $("#sec-images").hidden=adv;
   if(C.tf){ $("#lblF1").textContent=C.f1; $("#lblF2").textContent=C.f2; { const h=$("#ev_header"); if(!h.dataset.touched||!h.value.trim()||Object.values(CAT).some(c=>c.header===h.value.trim())) h.value=C.header; } }
   $("#lblConvener").textContent=C.conv;
   if(!wmTouched) $("#wmText").value=defaultWm(e);
@@ -738,10 +756,15 @@ function checks(e,p){
   if(p.p_addr && !/鄰/.test(p.p_addr)) m.push(["warn","戶籍地址看起來沒有「鄰」，主計室要求寫到區、鄰、里。"]);
   if(p.p_addr && !/里|村/.test(p.p_addr)) m.push(["warn","戶籍地址看起來沒有「里／村」。"]);
   if(!p.p_addr) m.push(["warn","尚未填寫戶籍地址。"]);
+  const adv=isAdv(e);
+  if(adv && (!e.advName||!e.advId)) m.push(["warn","選擇「匯款給代墊人」時，請填代墊人姓名與員編。"]);
+  if(adv) m.push(["info","付款方式為代墊：不需匯款同意書與存摺影本，請代墊人先把費用交給講者。"]);
+  if(!adv){
   if(!p.p_acct||!p.p_bankCode) m.push(["warn","匯款帳戶資料不完整。"]);
   if(p.p_acctName && p.p_name && p.p_acctName!==p.p_name) m.push(["bad","存款戶名與姓名不同。校外人士匯款需匯入本人帳戶。"]);
   if(!imgs.passbook) m.push(["warn","尚未上傳存摺影像。"]);
   if(e.needId!=="0" && (!imgs.idFront||!imgs.idBack)) m.push(["warn","尚未上傳身分證正反面。"]);
+  }
   if(C.tf && !p.p_job) m.push(["warn","教發中心單據需要「專家現職」。"]);
   if(e.tra){
     const hsinchu=/新竹/.test(p.t_from);
@@ -773,8 +796,10 @@ async function build(){
     if(e.lec) pages.push(["領據｜演講費",genReceipt(e,p,"lec"),"演講費領據","form"]);
     if(e.tra) pages.push(["領據｜交通費",genReceipt(e,p,"tra"),"交通費領據","form"]);
   }
+  if(!isAdv(e)){
   pages.push(["校外人士匯款同意書",remitSheet(e,p),"匯款同意書","remit"]);
   pages.push([e.needId==="0"?"存摺影本":"身分證及存摺影本（浮水印）",copiesSheet(e,p,w),e.needId==="0"?"存摺影本":"證件影本","copies"]);
+  }
   $("#printroot").innerHTML=pages.map(x=>x[1]).join("");
   if(document.fonts&&document.fonts.ready) await document.fonts.ready;
   if(my!==building) return;
@@ -802,7 +827,7 @@ try{ const v=localStorage.getItem(TAB_KEY); if(v==="all") pvTab="all"; }catch(_)
 function sheetNeedsLook(kind,e,p){
   if(kind==="copies") return !imgs.passbook || (e.needId!=="0" && (!imgs.idFront||!imgs.idBack));
   if(kind==="remit") return !p.p_acct || !p.p_bankCode || !p.p_bank;
-  return !p.p_name || !p.p_id || !p.p_addr;
+  return !p.p_name || !p.p_id || !p.p_addr || (isAdv(e) && (!e.advName||!e.advId));
 }
 function renderTabs(){
   const n=pvPages.length;
@@ -1001,7 +1026,8 @@ function lockEvent(e){
   const rows=[["單據類別",C.label],["項目",[e.lec&&"演講費",e.tra&&"交通費"].filter(Boolean).join("、")],
     C.tf&&[C.f1,e.f1], C.tf&&[C.f2,e.f2], [C.conv,e.convener],["演講主題",e.topic],
     ["日期時間",[ev?`${ev.Y}/${ev.m}/${ev.d}`:"",e.time].filter(Boolean).join(" ")],["地點",e.place],
-    e.lec&&e.lecAmt&&["演講費",`NT$ ${money(e.lecAmt)}`]].filter(r=>r&&r[1]);
+    e.lec&&e.lecAmt&&["演講費",`NT$ ${money(e.lecAmt)}`],
+    C.tf&&["付款方式", isAdv(e)? `匯款給代墊人（${e.advName||"未填姓名"}）` : "匯款給講者"]].filter(r=>r&&r[1]);
   $("#eventLocked").innerHTML=`<strong>邀請人已設定好這場演講</strong><dl>${rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
    <button type="button" id="btnUnlock" style="margin-top:8px;font-size:.85rem;padding:4px 10px">資料有誤，我要修改</button>`;
   $("#eventLocked").hidden=false; $("#eventForm").hidden=true;
