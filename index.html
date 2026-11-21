@@ -237,10 +237,18 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
             <label><input type="radio" name="cat" value="general">通用（系所／學校領據）</label>
           </div>
         </div>
+        <div class="full tf-only">
+          <div class="small" style="margin-bottom:4px">講者身分 <span style="color:var(--bad)">*</span>（擇一）</div>
+          <div class="seg" id="whoSeg">
+            <label><input type="radio" name="who" value="ext" checked>校外人士</label>
+            <label><input type="radio" name="who" value="in">校內人士（專任教師、職員、學生）</label>
+          </div>
+        </div>
         <div class="full row">
           <span class="small">要核銷的項目：</span>
           <label class="chk"><input type="checkbox" id="itLecture" checked>演講費（講座鐘點費）</label>
           <label class="chk"><input type="checkbox" id="itTravel" checked>交通費</label>
+          <span class="small in-note" hidden>校內人士只需要「印領清冊（校內人員）」這一張；交通費請另走出差流程。</span>
         </div>
         <label class="f tf-proj"><span class="req" id="lblF1">課程名稱</span><input type="text" id="ev_f1"></label>
         <label class="f tf-proj"><span id="lblF2">計畫編號</span><input type="text" id="ev_f2"></label>
@@ -294,15 +302,16 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
     <p class="hint">依「印領清冊／領據」需要的欄位。戶籍地址請寫到區、鄰、里，這是主計室最常退件的地方。</p>
     <div class="grid">
       <label class="f"><span class="req">姓名</span><input type="text" id="p_name" autocomplete="name"></label>
+      <label class="f in-only"><span class="req">員工編號／學號</span><input type="text" id="p_empId" autocomplete="off"></label>
       <label class="f gen-only"><span>稱謂（通用領據）</span><select id="p_title"><option>先生</option><option>小姐</option><option value="">先生/小姐（不刪）</option></select></label>
       <label class="f tf-only"><span class="req">現職（單位／職稱）</span><input type="text" id="p_job" placeholder="例：○○大學 ○○系 副教授"></label>
-      <label class="f"><span class="req">身分證字號</span><input type="text" id="p_id" maxlength="10" autocomplete="off" style="text-transform:uppercase"></label>
-      <label class="f"><span class="req">出生年月日</span><input type="date" id="p_dob" min="1920-01-01"></label>
-      <label class="f"><span>郵遞區號</span><input type="text" id="p_zip" maxlength="6" inputmode="numeric"></label>
-      <label class="f full"><span class="req">戶籍地址（含區、鄰、里）</span><input type="text" id="p_addr" placeholder="例：新北市板橋區○○里 5 鄰 ○○路 1 段 10 號 3 樓"></label>
-      <label class="f full"><span>通訊地址（匯款同意書）</span><input type="text" id="p_mail" placeholder="空白時與戶籍地址相同"></label>
-      <label class="f"><span class="req">電話</span><input type="tel" id="p_phone" autocomplete="tel"></label>
-      <label class="f"><span class="req">E-mail（匯款後通知）</span><input type="email" id="p_email" autocomplete="email"></label>
+      <label class="f ext-only"><span class="req">身分證字號</span><input type="text" id="p_id" maxlength="10" autocomplete="off" style="text-transform:uppercase"></label>
+      <label class="f ext-only"><span class="req">出生年月日</span><input type="date" id="p_dob" min="1920-01-01"></label>
+      <label class="f ext-only"><span>郵遞區號</span><input type="text" id="p_zip" maxlength="6" inputmode="numeric"></label>
+      <label class="f ext-only full"><span class="req">戶籍地址（含區、鄰、里）</span><input type="text" id="p_addr" placeholder="例：新北市板橋區○○里 5 鄰 ○○路 1 段 10 號 3 樓"></label>
+      <label class="f ext-only full"><span>通訊地址（匯款同意書）</span><input type="text" id="p_mail" placeholder="空白時與戶籍地址相同"></label>
+      <label class="f ext-only"><span class="req">電話</span><input type="tel" id="p_phone" autocomplete="tel"></label>
+      <label class="f ext-only"><span class="req">E-mail（匯款後通知）</span><input type="email" id="p_email" autocomplete="email"></label>
     </div>
   </section>
 
@@ -433,7 +442,7 @@ const CAT={
   "tf-innov":{tf:true,label:"教發中心｜教師創新教學",f1:"課程名稱",f2:"計畫編號",conv:"召集人",convSign:"召集人簽名&amp;員工編號",
     header:"教學發展中心「教師創新教學補助」/提升教學品質、精進教學。",bilingual:true,rosterTitle:"印領清冊 (校外人員)"},
   "tf-cross":{tf:true,label:"教發中心｜跨域富學社群",f1:"社群名稱",f2:"計畫編號",conv:"召集人",convSign:"召集人簽名&amp;員工編號",
-    header:"教學發展中心「跨域富學社群補助」/提升教學品質、精進教學。",bilingual:true,rosterTitle:"印領清冊 (校外人員)"},
+    header:"教學發展中心「跨域富學社群補助」/增進教師的教學效能。",bilingual:true,rosterTitle:"印領清冊 (校外人員)"},
   "tf-colearn":{tf:true,label:"教發中心｜共學圈圈",f1:"共學圈圈小組名稱",f2:"小組編號",conv:"召集人",convSign:"召集人簽名&amp;學號",
     header:"教學發展中心「共學圈圈計畫」/提升學生自主學習、增進學生學習效能。",bilingual:false,rosterTitle:"ROC_MONTH"},
   "general":{tf:false,label:"通用（系所／學校領據）",conv:"計畫主持人／邀請人"}
@@ -444,17 +453,19 @@ const imgs={passbook:null,idFront:null,idBack:null}; // dataURL (downscaled, unw
 let fromLink=false, pickTarget=null;
 
 const EV_IDS=["ev_f1","ev_f2","ev_convener","ev_unit","ev_topic","ev_date","ev_time","ev_place","ev_lecAmt","ev_traAmt","ev_dest","ev_act","ev_dateMode","ev_feeKind","ev_tax","ev_needId","ev_header","ev_boxLec","ev_advName","ev_advId"];
-const P_IDS=["p_name","p_title","p_job","p_id","p_dob","p_zip","p_addr","p_mail","p_phone","p_email","p_bank","p_bankCode","p_branch","p_branchCode","p_acct","p_acctName","p_remitKind","t_from","t_fromType","t_other","t_amt","t_docs"];
+const P_IDS=["p_name","p_empId","p_title","p_job","p_id","p_dob","p_zip","p_addr","p_mail","p_phone","p_email","p_bank","p_bankCode","p_branch","p_branchCode","p_acct","p_acctName","p_remitKind","t_from","t_fromType","t_other","t_amt","t_docs"];
 
 function readEvent(){
-  const e={cat:($('input[name=cat]:checked')||{}).value||"tf-innov",lec:$("#itLecture").checked,tra:$("#itTravel").checked,pay:($('input[name=pay]:checked')||{}).value||"speaker"};
+  const e={cat:($('input[name=cat]:checked')||{}).value||"tf-innov",lec:$("#itLecture").checked,tra:$("#itTravel").checked,pay:($('input[name=pay]:checked')||{}).value||"speaker",who:($('input[name=who]:checked')||{}).value||"ext"};
   EV_IDS.forEach(id=>e[id.slice(3)]=$("#"+id).value.trim());
+  if(CAT[e.cat].tf && e.who==="in") e.tra=false; // 校內人士 only has the lecture-fee roster
   if(Object.values(CAT).some(c=>c.header===e.header)) e.header="";
   return e;
 }
 function writeEvent(e){
   const r=$(`input[name=cat][value="${e.cat}"]`); if(r) r.checked=true;
   const pr=$(`input[name=pay][value="${e.pay||"speaker"}"]`); if(pr) pr.checked=true;
+  const wr=$(`input[name=who][value="${e.who||"ext"}"]`); if(wr) wr.checked=true;
   $("#itLecture").checked=e.lec!==false; $("#itTravel").checked=e.tra!==false;
   EV_IDS.forEach(id=>{const k=id.slice(3); if(e[k]!==undefined) $("#"+id).value=e[k];});
 }
@@ -535,6 +546,31 @@ function tfTopBlock(C){
   <td>主計室</td><td class="xs">機關長官或授權代簽人(授權金額 15 萬元以下)</td></tr>
   <tr style="height:118px"><td class="g">${C.convSign}</td><td></td><td></td><td></td><td></td><td></td></tr></table>`;
 }
+function tfLectureIn(e,p,C){
+  // A-4「印領清冊（校內人員）」: no ID / birthday / address rows; first column is 員編
+  const ev=roc(e.date), amt=money(e.lecAmt);
+  const items=[[C.f1,e.f1],[C.f2,e.f2],[C.conv,e.convener],["專家姓名",p.p_name],["專家現職",p.p_job],["演講主題",e.topic],["演講日期",ev?`${ev.Y} 年 ${ev.m} 月 ${ev.d} 日`:""],["演講時間",e.time],["演講地點",e.place]];
+  const rosterTitle=C.rosterTitle==="ROC_MONTH"? `國立清華大學 ${ev?f(ev.y):'&emsp;&emsp;'} 年 ${ev?f(ev.m):'&emsp;'} 月份印領清冊 (校內人員)` : "印領清冊 (校內人員)";
+  const fees=["演講費","撰稿費","審稿費","出席費","鐘點費","命題費","顧問費","交通費"].map(k=>`${cb(k===(e.feeKind||"演講費"))}${k}`).join(" ");
+  return `<div class="sheet">${tfTopBlock(C)}
+  <table style="margin-top:-1px"><colgroup><col style="width:13.5%"><col style="width:31%"><col style="width:4%"><col></colgroup>
+   <tr style="height:52px"><td class="c">金　額<div class="xs">(阿拉伯數字)</div></td><td class="c">${amt?f("NT$ "+amt):""}</td>
+     <td rowspan="${C.bilingual?4:3}" class="vtext">用途摘要</td>
+     <td rowspan="${C.bilingual?4:3}" style="vertical-align:top;padding:6px 8px">${C_header(e,C)}【講座鐘點費】
+       <ol class="sum shrink">${items.map(([k,v])=>`<li>${k}：${f(v)}</li>`).join("")}</ol></td></tr>
+   <tr style="height:150px"><td class="c">付款方式</td>${payCell(e)}</tr>
+   <tr style="height:56px"><td class="c">經手人<div class="xs">(聯絡方式)</div></td><td class="g sm">送資料者簽名&amp;學號，無則留空。</td></tr>
+   ${C.bilingual?`<tr><td colspan="2" style="padding:5px 6px;line-height:1.7"><b>若本計畫執行內容與雙語計畫相關，請依課程／活動實際內容擇一或複選下列項目：</b><br>${cb(false)}國際、跨文化及英語授課<br>${cb(false)}學術英文課程或專業英語課程<br>${cb(false)}其他：<span class="uline"></span></td></tr>`:""}
+  </table>
+  <table style="margin-top:-1px"><tr style="height:40px"><td class="c" style="font-size:12pt">${rosterTitle}</td></tr></table>
+  <table style="margin-top:-1px" class="c"><colgroup><col style="width:11%"><col></colgroup><tr style="height:40px"><td>費別</td><td style="text-align:left">${fees}</td></tr></table>
+  <table style="margin-top:-1px" class="c"><colgroup><col style="width:15%"><col style="width:15%"><col style="width:15%"><col style="width:15%"><col style="width:15%"><col></colgroup>
+   <tr style="height:44px"><td>員編</td><td>應領金額</td><td>所得稅</td><td>自提二代健保</td><td>實領金額</td><td>簽名或蓋章</td></tr>
+   <tr style="height:52px"><td>${f(p.p_empId)}</td><td>${amt?f(amt):""}</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td class="g sm">無需填寫</td><td></td></tr>
+  </table>
+  <div class="notes"><b><u>※簽名欄位都要正本不收電子簽章。</u></b></div>
+  </div>`;
+}
 function tfLecture(e,p,C){
   const ev=roc(e.date), amt=money(e.lecAmt);
   const items=[[C.f1,e.f1],[C.f2,e.f2],[C.conv,e.convener],["專家姓名",p.p_name],["專家現職",p.p_job],["演講主題",e.topic],["演講日期",ev?`${ev.Y} 年 ${ev.m} 月 ${ev.d} 日`:""],["演講時間",e.time],["演講地點",e.place]];
@@ -565,11 +601,13 @@ function tfLecture(e,p,C){
 }
 function remitEmpty(p){ return !p.p_bank && !p.p_bankCode && !p.p_branch && !p.p_branchCode && !p.p_acct; }
 function copiesEmpty(){ return !imgs.passbook && !imgs.idFront && !imgs.idBack; }
+function isIn(e){ return CAT[e.cat].tf && e.who==="in"; }
 function isAdv(e){ return CAT[e.cat].tf && e.pay==="advance"; }
 function payCell(e){
   const adv=isAdv(e);
-  return `<td style="font-size:13px">${cb(!adv)}匯款給講者<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>
-     <div style="margin-top:6px">${cb(adv)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px">${adv?f(e.advName):""}</span><br>員編：<span class="uline" style="min-width:110px">${adv?f(e.advId):""}</span></div></td>`;
+  const note=isIn(e)? "" : `<div style="padding-left:18px">校外人士請檢附匯款同意書；曾於出納組建檔無須重複提供</div>`;
+  return `<td style="font-size:13px">${cb(!adv)}匯款給講者${note}
+     <div style="margin-top:${isIn(e)?"22px":"6px"}">${cb(adv)}匯款給代墊人</div><div style="padding-left:18px">姓名：<span class="uline" style="min-width:110px">${adv?f(e.advName):""}</span><br>員編：<span class="uline" style="min-width:110px">${adv?f(e.advId):""}</span></div></td>`;
 }
 function C_header(e,C){ return esc(e.header||C.header); }
 function tfTravel(e,p,C){
@@ -749,7 +787,10 @@ function applyVisibility(e){
   $$(".id-only").forEach(x=>x.hidden=e.needId==="0");
   const adv=isAdv(e);
   $$(".pay-adv").forEach(x=>x.hidden=!adv);
-  $("#sec-account").hidden=adv; $("#sec-images").hidden=adv;
+  const inner=isIn(e);
+  $("#sec-account").hidden=adv||inner; $("#sec-images").hidden=adv||inner;
+  $$(".ext-only").forEach(x=>x.hidden=inner); $$(".in-only").forEach(x=>x.hidden=!inner);
+  $$(".in-note").forEach(x=>x.hidden=!inner); $("#itTravel").disabled=inner;
   $$(".tf-opt").forEach(x=>x.hidden=!C.tf);
   if(C.tf){ $("#lblF1").textContent=C.f1; $("#lblF2").textContent=C.f2; { const h=$("#ev_header"); if(!h.dataset.touched||!h.value.trim()||Object.values(CAT).some(c=>c.header===h.value.trim())) h.value=C.header; } }
   $("#lblConvener").textContent=C.conv;
@@ -759,15 +800,22 @@ function checks(e,p){
   const m=[]; const C=CAT[e.cat];
   if(!e.lec&&!e.tra) m.push(["bad","請至少勾選一個要核銷的項目。"]);
   if(!p.p_name) m.push(["warn","尚未填寫姓名。"]);
+  const inner=isIn(e);
+  if(inner){
+    if(!p.p_empId) m.push(["warn","尚未填寫員工編號／學號。"]);
+    if(!e.lec) m.push(["bad","校內人士只能核銷講座鐘點費，請勾選「演講費」。"]);
+    m.push(["info","校內講者若是學生，需另附與演講主題相關的專業經歷（例如得獎紀錄）。"]);
+  }else{
   if(p.p_id && !idValid(p.p_id)) m.push(["bad","身分證字號格式或檢查碼不正確，請再核對一次。"]);
   if(!p.p_id) m.push(["warn","尚未填寫身分證字號。"]);
   if(p.p_addr && !/鄰/.test(p.p_addr)) m.push(["warn","戶籍地址看起來沒有「鄰」，主計室要求寫到區、鄰、里。"]);
   if(p.p_addr && !/里|村/.test(p.p_addr)) m.push(["warn","戶籍地址看起來沒有「里／村」。"]);
   if(!p.p_addr) m.push(["warn","尚未填寫戶籍地址。"]);
+  }
   const adv=isAdv(e);
   if(adv && (!e.advName||!e.advId)) m.push(["warn","選擇「匯款給代墊人」時，請填代墊人姓名與員編。"]);
-  if(adv) m.push(["info","付款方式為代墊：不需匯款同意書與存摺影本，請代墊人先把費用交給講者。"]);
-  if(!adv){
+  if(adv && !inner) m.push(["info","付款方式為代墊：不需匯款同意書與存摺影本，請代墊人先把費用交給講者。"]);
+  if(!adv && !inner){
   const opt=C.tf, remitStarted=!remitEmpty(p), imgStarted=!!(imgs.passbook||imgs.idFront||imgs.idBack);
   if((!opt||remitStarted) && (!p.p_acct||!p.p_bankCode)) m.push(["warn","匯款帳戶資料不完整。"]);
   if(p.p_acctName && p.p_name && p.p_acctName!==p.p_name) m.push(["bad","存款戶名與姓名不同。校外人士匯款需匯入本人帳戶。"]);
@@ -785,7 +833,7 @@ function checks(e,p){
     if(p.tools.includes("自行開車")) m.push(["info","自行開車每公里 3 元（機車 2 元），請另附 Google 地圖起訖里程截圖。"]);
   }
   if(e.lec && !C.tf && Number(e.lecAmt)>=20000 && e.tax!=="auto") m.push(["info","演講費達 2 萬元，承辦人需處理所得稅與二代健保，實領會少於應領。"]);
-  if(C.tf && e.lec) m.push(["info","校內人士（學生、專任教師、職員）不得支領教發中心講座鐘點費。"]);
+  if(C.tf && e.lec && !inner) m.push(["info","講者如果是本校專任教師、職員或學生，請在第 01 區把「講者身分」改成校內人士。"]);
   if(!m.some(x=>x[0]!=="info")) m.unshift(["info","資料齊全。下載 PDF 後列印、在簽名欄親筆簽名，連同正本交給邀請人。"]);
   return m;
 }
@@ -800,13 +848,13 @@ async function build(){
   if(my!==building) return;
   const pages=[]; // [full title, html, tab name, kind]
   if(C.tf){
-    if(e.lec) pages.push(["支出憑證黏存單｜講座鐘點費",tfLecture(e,p,C),"講座鐘點費","form"]);
+    if(e.lec) pages.push(isIn(e)? ["支出憑證黏存單｜講座鐘點費（校內人員）",tfLectureIn(e,p,C),"講座鐘點費（校內）","form"] : ["支出憑證黏存單｜講座鐘點費",tfLecture(e,p,C),"講座鐘點費","form"]);
     if(e.tra) pages.push(["支出憑證黏存單｜交通費",tfTravel(e,p,C),"交通費","form"]);
   }else{
     if(e.lec) pages.push(["領據｜演講費",genReceipt(e,p,"lec"),"演講費領據","form"]);
     if(e.tra) pages.push(["領據｜交通費",genReceipt(e,p,"tra"),"交通費領據","form"]);
   }
-  if(!isAdv(e)){
+  if(!isAdv(e) && !isIn(e)){
   pages.push(["校外人士匯款同意書",remitSheet(e,p),"匯款同意書","remit"]);
   pages.push([e.needId==="0"?"存摺影本":"身分證及存摺影本（浮水印）",copiesSheet(e,p,w),e.needId==="0"?"存摺影本":"證件影本","copies"]);
   }
@@ -840,6 +888,7 @@ try{ const v=localStorage.getItem(TAB_KEY); if(v==="all") pvTab="all"; }catch(_)
 function sheetNeedsLook(kind,e,p){
   if(kind==="copies") return !imgs.passbook || (e.needId!=="0" && (!imgs.idFront||!imgs.idBack));
   if(kind==="remit") return !p.p_acct || !p.p_bankCode || !p.p_bank;
+  if(isIn(e)) return !p.p_name || !p.p_empId || !p.p_job || (isAdv(e) && (!e.advName||!e.advId));
   return !p.p_name || !p.p_id || !p.p_addr || (isAdv(e) && (!e.advName||!e.advId));
 }
 function renderTabs(){
@@ -1048,6 +1097,7 @@ function lockEvent(e){
     C.tf&&[C.f1,e.f1], C.tf&&[C.f2,e.f2], [C.conv,e.convener],["演講主題",e.topic],
     ["日期時間",[ev?`${ev.Y}/${ev.m}/${ev.d}`:"",e.time].filter(Boolean).join(" ")],["地點",e.place],
     e.lec&&e.lecAmt&&["演講費",`NT$ ${money(e.lecAmt)}`],
+    C.tf&&["講者身分", isIn(e)? "校內人士" : "校外人士"],
     C.tf&&["付款方式", isAdv(e)? `匯款給代墊人（${e.advName||"未填姓名"}）` : "匯款給講者"]].filter(r=>r&&r[1]);
   $("#eventLocked").innerHTML=`<strong>邀請人已設定好這場演講</strong><dl>${rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
    <button type="button" id="btnUnlock" style="margin-top:8px;font-size:.85rem;padding:4px 10px">資料有誤，我要修改</button>`;
