@@ -90,6 +90,8 @@ button:disabled{opacity:.5;cursor:default}
 .pv-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:thin;border-bottom:1px solid var(--line);margin:0 -2px 10px;padding:0 2px;-webkit-overflow-scrolling:touch}
 .pv-tab{flex:none;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;background:transparent;color:var(--muted);padding:7px 12px;font-size:.88rem;position:relative;margin-bottom:-1px;white-space:nowrap}
 .pv-tab[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--line);font-weight:700}
+.opt-badge{font-size:.72rem;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 8px;vertical-align:2px}
+.pv-tab .opt{font-size:.75em;opacity:.75;margin-left:3px}
 .pv-tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:2px}
 .pv-tab.all{margin-left:auto;color:var(--muted)}
 .preview.single .pv-label{display:none}
@@ -192,6 +194,7 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
   body > *:not(#printroot){display:none!important}
   #printroot{position:static;left:auto}
   #printroot .sheet{page-break-after:always;break-after:page}
+  #printroot .sheet.skip-print{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -305,7 +308,8 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
 
   <!-- ③ 帳戶 -->
   <section class="card" id="sec-account">
-    <h2><span class="step">03</span>匯款帳戶</h2>
+    <h2><span class="step">03</span>匯款帳戶 <span class="opt-badge tf-opt">選填</span></h2>
+    <p class="hint tf-opt" style="color:var(--accent)">教發中心單據：<b>只有校外人士第一次在清華領款</b>才需要附匯款同意書與存摺／身分證影本；之前已在出納組建檔的講者可以略過這一區。沒填的話，PDF 不會包含這一頁。</p>
     <p class="hint">需與存摺影本一致，且必須是本人帳戶。郵局的分行代號請填局號。</p>
     <div class="grid">
       <label class="f"><span class="req">銀行名稱</span><input type="text" id="p_bank" list="bankList" placeholder="輸入或選擇，例：中華郵政"></label>
@@ -346,7 +350,8 @@ footer.note{max-width:1400px;margin:0 auto 40px;padding-left:max(16px,env(safe-a
 
   <!-- ⑤ 影像 -->
   <section class="card" id="sec-images">
-    <h2><span class="step">05</span>存摺與身分證影像</h2>
+    <h2><span class="step">05</span>存摺與身分證影像 <span class="opt-badge tf-opt">選填</span></h2>
+    <p class="hint tf-opt" style="color:var(--accent)">教發中心單據：<b>只有校外人士第一次在清華領款</b>才需要附匯款同意書與存摺／身分證影本；之前已在出納組建檔的講者可以略過這一區。沒填的話，PDF 不會包含這一頁。</p>
     <p class="hint">手機拍照或掃描都可以。存摺請拍有戶名與帳號的那一頁。浮水印會蓋在影像上，原圖不會離開這台裝置。</p>
     <div class="uploads">
       <div class="drop" id="drop_passbook"><strong>存摺封面內頁</strong><div class="thumb"><span>尚未上傳</span></div>
@@ -558,6 +563,8 @@ function tfLecture(e,p,C){
   <div class="notes">備註：1、戶籍地址請務必填寫區、鄰、里。<br>★2、外籍、港.澳人士應檢附外僑居留證或護照或中華民國統一證號基資表影本(三證擇一）。<br>3、大陸人士應檢附旅行證與入出境管理局通行證影本（二證皆要）。<br>4、以上資料請詳實填寫，如發生稅務問題將由各承辦單位負責處理。<br>★5、非本國人士，需提供出入境證明(護照影本)在本國滿 183 天，未提供者方需事先扣除所得稅額 18%。<br><b><u>※簽名欄位都要正本不收電子簽章。</u></b></div>
   </div>`;
 }
+function remitEmpty(p){ return !p.p_bank && !p.p_bankCode && !p.p_branch && !p.p_branchCode && !p.p_acct; }
+function copiesEmpty(){ return !imgs.passbook && !imgs.idFront && !imgs.idBack; }
 function isAdv(e){ return CAT[e.cat].tf && e.pay==="advance"; }
 function payCell(e){
   const adv=isAdv(e);
@@ -743,6 +750,7 @@ function applyVisibility(e){
   const adv=isAdv(e);
   $$(".pay-adv").forEach(x=>x.hidden=!adv);
   $("#sec-account").hidden=adv; $("#sec-images").hidden=adv;
+  $$(".tf-opt").forEach(x=>x.hidden=!C.tf);
   if(C.tf){ $("#lblF1").textContent=C.f1; $("#lblF2").textContent=C.f2; { const h=$("#ev_header"); if(!h.dataset.touched||!h.value.trim()||Object.values(CAT).some(c=>c.header===h.value.trim())) h.value=C.header; } }
   $("#lblConvener").textContent=C.conv;
   if(!wmTouched) $("#wmText").value=defaultWm(e);
@@ -760,10 +768,12 @@ function checks(e,p){
   if(adv && (!e.advName||!e.advId)) m.push(["warn","選擇「匯款給代墊人」時，請填代墊人姓名與員編。"]);
   if(adv) m.push(["info","付款方式為代墊：不需匯款同意書與存摺影本，請代墊人先把費用交給講者。"]);
   if(!adv){
-  if(!p.p_acct||!p.p_bankCode) m.push(["warn","匯款帳戶資料不完整。"]);
+  const opt=C.tf, remitStarted=!remitEmpty(p), imgStarted=!!(imgs.passbook||imgs.idFront||imgs.idBack);
+  if((!opt||remitStarted) && (!p.p_acct||!p.p_bankCode)) m.push(["warn","匯款帳戶資料不完整。"]);
   if(p.p_acctName && p.p_name && p.p_acctName!==p.p_name) m.push(["bad","存款戶名與姓名不同。校外人士匯款需匯入本人帳戶。"]);
-  if(!imgs.passbook) m.push(["warn","尚未上傳存摺影像。"]);
-  if(e.needId!=="0" && (!imgs.idFront||!imgs.idBack)) m.push(["warn","尚未上傳身分證正反面。"]);
+  if((!opt||remitStarted||imgStarted) && !imgs.passbook) m.push(["warn","尚未上傳存摺影像。"]);
+  if((!opt||imgStarted) && e.needId!=="0" && (!imgs.idFront||!imgs.idBack)) m.push(["warn","尚未上傳身分證正反面。"]);
+  if(opt && !remitStarted && !imgStarted) m.push(["info","沒有填匯款帳戶與影像：PDF 只會包含黏存單。若你是第一次在清華領款，請補上匯款帳戶與存摺影像。"]);
   }
   if(C.tf && !p.p_job) m.push(["warn","教發中心單據需要「專家現職」。"]);
   if(e.tra){
@@ -806,7 +816,10 @@ async function build(){
   const fitWarn=fitSheets();
   const done=$$("#printroot .sheet").map(x=>x.outerHTML);
   const pv=$("#preview"); pv.innerHTML=pages.map(([t],i)=>`<div class="pv-item" data-i="${i}"><div class="pv-label">${esc(t)}</div><div class="pv-sheet" data-i="${i}" title="點一下放大檢視">${done[i]}</div></div>`).join("");
-  pvPages=pages.map(([t,,tab,kind],i)=>({title:t,tab,kind,flag:fitFlags[i]||sheetNeedsLook(kind,e,p)}));
+  const opt=C.tf; // 教發: remittance consent + copies are only for first-time outside speakers
+  pvPages=pages.map(([t,,tab,kind],i)=>{ const optional=opt&&(kind==="remit"||kind==="copies"); const empty=kind==="remit"?remitEmpty(p):kind==="copies"?copiesEmpty():false;
+    return {title:t,tab,kind,optional,skip:optional&&empty,flag:fitFlags[i]||(!optional&&sheetNeedsLook(kind,e,p))}; });
+  $$("#printroot .sheet").forEach((sh,i)=>sh.classList.toggle("skip-print",!!(pvPages[i]&&pvPages[i].skip)));
   renderTabs();
   $("#pvCount").textContent=`共 ${pages.length} 頁`;
   lastPdf=null;
@@ -832,8 +845,8 @@ function sheetNeedsLook(kind,e,p){
 function renderTabs(){
   const n=pvPages.length;
   if(pvTab!=="all" && (pvTab==null || pvTab>=n)) pvTab=0;
-  const btn=(key,label,flag,extra="")=>`<button type="button" role="tab" class="pv-tab ${extra}" data-tab="${key}" aria-selected="${String(pvTab)===String(key)}" tabindex="${String(pvTab)===String(key)?0:-1}">${esc(label)}${flag?'<span class="dot" title="這張還有欄位要確認"></span>':""}</button>`;
-  $("#pvTabs").innerHTML=pvPages.map((pg,i)=>btn(i,pg.tab,pg.flag)).join("")+btn("all","全部",false,"all");
+  const btn=(key,label,flag,extra="",opt=false)=>`<button type="button" role="tab" class="pv-tab ${extra}" data-tab="${key}" aria-selected="${String(pvTab)===String(key)}" tabindex="${String(pvTab)===String(key)?0:-1}">${esc(label)}${opt?'<span class="opt">選填</span>':""}${flag?'<span class="dot" title="這張還有欄位要確認"></span>':""}</button>`;
+  $("#pvTabs").innerHTML=pvPages.map((pg,i)=>btn(i,pg.tab,pg.flag,"",pg.optional)).join("")+btn("all","全部",false,"all");
   applyTab();
 }
 function applyTab(){
@@ -885,7 +898,9 @@ $("#zoomFit").onclick=()=>{ zoomMode="fit"; drawZoom(); };
 $("#zoomFull").onclick=()=>{ zoomMode="full"; drawZoom(); };
 document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && !$("#zoom").hidden) closeZoom(); });
 window.addEventListener("resize",()=>{ if(!$("#zoom").hidden) drawZoom(); });
-let t=null; function schedule(){ clearTimeout(t); t=setTimeout(build,180); }
+let t=null, pdfBusy=false, pendingBuild=false;
+// while a PDF is being drawn the sheets must not be re-rendered (e.g. by the change event of the field just left)
+function schedule(){ clearTimeout(t); if(pdfBusy){ pendingBuild=true; return; } t=setTimeout(build,180); }
 window.addEventListener("resize",scalePreview);
 
 /* ---------- events ---------- */
@@ -927,10 +942,16 @@ $("#btnPrint").onclick=async()=>{ await build(); window.print(); };
 if(typeof IAB!=="undefined" && IAB) $("#btnPrint").hidden=true;
 let lastPdf=null; // {file,name}: reused by the share button so a second tap shares instantly
 async function makePdf(){
-  if(lastPdf) return lastPdf;
+  clearTimeout(t);
+  if(lastPdf && !pendingBuild) return lastPdf;
   if(!window.html2canvas||!window.jspdf) throw new Error("nolib");
+  pdfBusy=true; pendingBuild=false;
+  try{ return await drawPdf(); }
+  finally{ pdfBusy=false; if(pendingBuild){ pendingBuild=false; schedule(); } }
+}
+async function drawPdf(){
   await build(); if(document.fonts&&document.fonts.ready) await document.fonts.ready;
-  const sheets=$$("#printroot .sheet"); const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",compress:true});
+  const sheets=$$("#printroot .sheet").filter(sh=>!sh.classList.contains("skip-print")); const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",compress:true});
   for(let i=0;i<sheets.length;i++){
     setStatus(`產生第 ${i+1}/${sheets.length} 頁…`);
     const c=await html2canvas(sheets[i],{scale:2,backgroundColor:"#ffffff",logging:false,windowWidth:900});
